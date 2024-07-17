@@ -1,0 +1,506 @@
+{
+    "results": [
+        {
+            "id": "6275b1eadeb3921490ed6c8b90b2f6c437b67955b6d5856759d0fd9c759704f2",
+            "publisher": {
+                "name": "Zacks Investment Research",
+                "homepage_url": "https://www.zacks.com/",
+                "logo_url": "https://s3.polygon.io/public/assets/news/logos/zacks.png",
+                "favicon_url": "https://s3.polygon.io/public/assets/news/favicons/zacks.ico"
+            },
+            "title": "Nordstrom (JWN) Growth Moves Aid: Should You Hold the Stock? - Zacks Investment Research",
+            "author": "Zacks Equity Research",
+            "published_utc": "2024-07-16T12:01:19Z",
+            "article_url": "https://www.zacks.com/stock/news/2302288/nordstrom-jwn-growth-moves-aid-should-you-hold-the-stock",
+            "tickers": [
+                "JWN",
+                "ANF",
+                "GPS",
+                "DECK"
+            ],
+            "image_url": "https://staticx-tuner.zacks.com/images/articles/main/91/719.jpg",
+            "description": "Nordstrom is focused on improving efficiency, enhancing customer experience, and expanding its Nordstrom Rack banner. The company is making efforts to optimize its supply chain, introduce more premium brands at Rack, and improve digital capabilities. Despite the wind-down of its Canada operations, Nordstrom remains well-positioned for growth.",
+            "keywords": [
+                "Nordstrom",
+                "Nordstrom Rack",
+                "customer experience",
+                "supply chain optimization",
+                "digital capabilities"
+            ],
+            "insights": [
+                {
+                    "ticker": "JWN",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "Nordstrom is focused on improving efficiency, enhancing customer experience, and expanding its Nordstrom Rack banner, which are expected to drive growth for the company."
+                },
+                {
+                    "ticker": "ANF",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "Abercrombie & Fitch is a leading casual apparel retailer that currently has a Zacks Rank #1 (Strong Buy)."
+                },
+                {
+                    "ticker": "GPS",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "Gap is a leading apparel retailer that currently has a Zacks Rank #1 (Strong Buy)."
+                },
+                {
+                    "ticker": "DECK",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "Deckers is a footwear and accessories dealer that currently has a Zacks Rank #2 (Buy)."
+                }
+            ]
+        },
+        {
+            "id": "5e5a4fbbb4a895e4fca34a02931423eb729db4b6d7dad26608c55f6a857b48ec",
+            "publisher": {
+                "name": "Zacks Investment Research",
+                "homepage_url": "https://www.zacks.com/",
+                "logo_url": "https://s3.polygon.io/public/assets/news/logos/zacks.png",
+                "favicon_url": "https://s3.polygon.io/public/assets/news/favicons/zacks.ico"
+            },
+            "title": "Here's Why Urban Outfitters (URBN) is Outpacing the Industry - Zacks Investment Research",
+            "author": "Zacks Investment Research",
+            "published_utc": "2024-07-15T13:30:39Z",
+            "article_url": "https://www.zacks.com/stock/news/2301707/heres-why-urban-outfitters-urbn-is-outpacing-the-industry",
+            "tickers": [
+                "URBN",
+                "GPS",
+                "ANF",
+                "GOOS"
+            ],
+            "image_url": "https://staticx-tuner.zacks.com/images/articles/main/56/975.jpg",
+            "description": "Urban Outfitters is well-positioned for long-term growth and market leadership through initiatives like FP Movement and Nuuly. The company has seen a strong stock performance driven by robust consumer demand and brand resonance. Its impressive financial results and forward-looking strategies highlight its commitment to retail expansion, digital innovation, and sustainability.",
+            "keywords": [
+                "Urban Outfitters",
+                "FP Movement",
+                "Nuuly",
+                "retail",
+                "growth",
+                "market leadership"
+            ],
+            "insights": [
+                {
+                    "ticker": "URBN",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article highlights Urban Outfitters' strong growth trajectory, driven by successful brands like Free People and Anthropologie, as well as its innovative approach, expanding digital and rental businesses, and strategic investments in retail expansion and operational efficiency, positioning the company well for sustained growth and profitability."
+                },
+                {
+                    "ticker": "GPS",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article mentions The Gap as a top-ranked stock in the retail space, with a Zacks Rank #1 (Strong Buy) and positive growth prospects in terms of earnings and sales."
+                },
+                {
+                    "ticker": "ANF",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article highlights Abercrombie & Fitch as a top-ranked stock in the retail space, with a Zacks Rank #1 (Strong Buy) and positive growth prospects in terms of earnings and sales."
+                },
+                {
+                    "ticker": "GOOS",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article mentions Canada Goose as a top-ranked stock in the retail space, with a Zacks Rank #1 (Strong Buy) and positive growth prospects in terms of earnings."
+                }
+            ]
+        },
+        {
+            "id": "7e38b3e6926c33fff0ac25e914ac236697c5bc6f886d32183b36608440134f00",
+            "publisher": {
+                "name": "Zacks Investment Research",
+                "homepage_url": "https://www.zacks.com/",
+                "logo_url": "https://s3.polygon.io/public/assets/news/logos/zacks.png",
+                "favicon_url": "https://s3.polygon.io/public/assets/news/favicons/zacks.ico"
+            },
+            "title": "Walmart's (WMT) Next Step in Supply Chain Modernization Underway - Zacks Investment Research",
+            "author": "Zacks Equity Research",
+            "published_utc": "2024-07-11T13:32:29Z",
+            "article_url": "https://www.zacks.com/stock/news/2300031/walmarts-wmt-next-step-in-supply-chain-modernization-underway",
+            "tickers": [
+                "WMT",
+                "ANF",
+                "GPS",
+                "DKS"
+            ],
+            "image_url": "https://staticx-tuner.zacks.com/images/articles/main/0d/436.jpg",
+            "description": "Walmart is investing in data, software, and automation to modernize its grocery supply chain. The company is building high-tech distribution centers, expanding and retrofitting existing facilities, and integrating advanced technology to enhance service reliability and meet customer needs.",
+            "keywords": [
+                "Walmart",
+                "grocery",
+                "supply chain",
+                "modernization",
+                "distribution centers",
+                "automation"
+            ],
+            "insights": [
+                {
+                    "ticker": "WMT",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article highlights Walmart's efforts to modernize its grocery supply chain through investments in technology, automation, and facility upgrades, which are expected to improve service reliability and meet customer demands."
+                },
+                {
+                    "ticker": "ANF",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article mentions Abercrombie & Fitch as a top-ranked stock with a Zacks Rank #1 (Strong Buy) and positive growth expectations for sales and earnings."
+                },
+                {
+                    "ticker": "GPS",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article highlights The Gap as a top-ranked stock with a Zacks Rank #1 (Strong Buy) and positive growth expectations for sales and earnings."
+                },
+                {
+                    "ticker": "DKS",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article mentions DICK'S Sporting Goods as a top-ranked stock with a Zacks Rank #2 (Buy) and positive growth expectations for sales and earnings."
+                }
+            ]
+        },
+        {
+            "id": "1f816ea7e5a601cb2ebb781e45128d5bfd12ad51a59d217af3b63397d677989b",
+            "publisher": {
+                "name": "Zacks Investment Research",
+                "homepage_url": "https://www.zacks.com/",
+                "logo_url": "https://s3.polygon.io/public/assets/news/logos/zacks.png",
+                "favicon_url": "https://s3.polygon.io/public/assets/news/favicons/zacks.ico"
+            },
+            "title": "Nordstrom (JWN) to Open New Rack Store in Coral Springs, Florida - Zacks Investment Research",
+            "author": "Zacks Equity Research",
+            "published_utc": "2024-07-10T11:30:09Z",
+            "article_url": "https://www.zacks.com/stock/news/2299038/nordstrom-jwn-to-open-new-rack-store-in-coral-springs-florida",
+            "tickers": [
+                "JWN",
+                "GPS",
+                "ANF",
+                "GOOS"
+            ],
+            "image_url": "https://staticx-tuner.zacks.com/images/articles/main/88/887.jpg",
+            "description": "Nordstrom, Inc. announced plans to open a new Nordstrom Rack store in Coral Springs, Florida, in fall 2025. The new store will enhance the company's presence in the Miami market and provide the local community with a wide range of high-quality brands at affordable prices.",
+            "keywords": [
+                "Nordstrom Rack",
+                "Coral Springs",
+                "Florida",
+                "off-price retail",
+                "Closer to You strategy"
+            ],
+            "insights": [
+                {
+                    "ticker": "JWN",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article highlights Nordstrom's expansion plans, which are expected to contribute to the local economy and provide customers with a convenient shopping experience."
+                },
+                {
+                    "ticker": "GPS",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article mentions Gap as a key pick in the retail space, indicating a positive sentiment towards the company."
+                },
+                {
+                    "ticker": "ANF",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article highlights Abercrombie & Fitch as a key pick in the retail space, indicating a positive sentiment towards the company."
+                },
+                {
+                    "ticker": "GOOS",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article mentions Canada Goose as a key pick in the retail space, indicating a positive sentiment towards the company."
+                }
+            ]
+        },
+        {
+            "id": "baaec71df88f7ddd6770a574a99d2f75002d8acbb415d44fc1287e9a760fd9c6",
+            "publisher": {
+                "name": "Zacks Investment Research",
+                "homepage_url": "https://www.zacks.com/",
+                "logo_url": "https://s3.polygon.io/public/assets/news/logos/zacks.png",
+                "favicon_url": "https://s3.polygon.io/public/assets/news/favicons/zacks.ico"
+            },
+            "title": "Top Stock Picks for Week of July 8, 2024 - Zacks Investment Research",
+            "author": "N/A",
+            "published_utc": "2024-07-08T20:19:38Z",
+            "article_url": "https://www.zacks.com/stock/news/2298121/top-stock-picks-for-week-of-july-8-2024?art_rec=home-home-top_stories-ID01-txt-2298121",
+            "tickers": [
+                "CYBR",
+                "GPS"
+            ],
+            "image_url": "https://staticx-tuner.zacks.com/images/default_article_images/default91.jpg",
+            "description": "CyberArk Software Ltd. is benefiting from the rising demand for cyber security and privileged access security solutions, with a strong presence across various industries. The Gap, Inc. is witnessing lower airfreight and improved promotions, aiding its margins.",
+            "keywords": [
+                "CyberArk Software Ltd.",
+                "The Gap, Inc.",
+                "cyber security",
+                "privileged access security",
+                "cost-control",
+                "margins"
+            ],
+            "insights": [
+                {
+                    "ticker": "CYBR",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "CyberArk is benefiting from the rising demand for cyber security and privileged access security solutions, with a strong presence across various industries, and its strategic shift toward software-as-a-service and subscription-based solutions is driving top-line growth."
+                },
+                {
+                    "ticker": "GPS",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The Gap is witnessing lower airfreight and improved promotions, which have been aiding its margins, and its top and bottom lines have surpassed the Zacks Consensus Estimate and improved year over year in the reported quarter."
+                }
+            ]
+        },
+        {
+            "id": "2a128f0022783c3934328b8db8b78d7243d43cb877283ebbbe556775e5a5e68c",
+            "publisher": {
+                "name": "Zacks Investment Research",
+                "homepage_url": "https://www.zacks.com/",
+                "logo_url": "https://s3.polygon.io/public/assets/news/logos/zacks.png",
+                "favicon_url": "https://s3.polygon.io/public/assets/news/favicons/zacks.ico"
+            },
+            "title": "Here's Why You Should Invest in American Eagle (AEO) Stock Now - Zacks Investment Research",
+            "author": "Zacks Equity Research",
+            "published_utc": "2024-07-05T15:31:27Z",
+            "article_url": "https://www.zacks.com/stock/news/2297371/heres-why-you-should-invest-in-american-eagle-aeo-stock-now",
+            "tickers": [
+                "AEO",
+                "ANF",
+                "GPS",
+                "DECK"
+            ],
+            "image_url": "https://staticx-tuner.zacks.com/images/articles/main/50/460.jpg",
+            "description": "American Eagle Outfitters is well-positioned to capitalize on positive trends in the fashion industry, driven by its digital initiatives, the Real Power Real Growth Plan, and strong brand appeal. The company's Aerie brand is a key growth engine, and its profit-improvement efforts have been paying off, leading to margin expansion.",
+            "keywords": [
+                "American Eagle Outfitters",
+                "Aerie",
+                "fashion trends",
+                "digital initiatives",
+                "Real Power Real Growth Plan",
+                "profit-improvement"
+            ],
+            "insights": [
+                {
+                    "ticker": "AEO",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article highlights the company's strong positioning in the fashion industry, driven by its digital initiatives, the Real Power Real Growth Plan, and the growth of its Aerie brand. The company's profit-improvement efforts have also been successful, leading to margin expansion."
+                },
+                {
+                    "ticker": "ANF",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article mentions Abercrombie & Fitch as a top-ranked stock, indicating a positive sentiment towards the company."
+                },
+                {
+                    "ticker": "GPS",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article mentions Gap as a top-ranked stock, indicating a positive sentiment towards the company."
+                },
+                {
+                    "ticker": "DECK",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article mentions Deckers as a top-ranked stock, indicating a positive sentiment towards the company."
+                }
+            ]
+        },
+        {
+            "id": "83c772549d7b9c762702a250d0d62d601c188a174644b801fafbefbc8fb654e8",
+            "publisher": {
+                "name": "Zacks Investment Research",
+                "homepage_url": "https://www.zacks.com/",
+                "logo_url": "https://s3.polygon.io/public/assets/news/logos/zacks.png",
+                "favicon_url": "https://s3.polygon.io/public/assets/news/favicons/zacks.ico"
+            },
+            "title": "The Gap (GPS) Gains Momentum, Rises 10% in the Last Six Months - Zacks Investment Research",
+            "author": "Zacks Investment Research",
+            "published_utc": "2024-07-05T14:01:22Z",
+            "article_url": "https://www.zacks.com/stock/news/2297297/the-gap-gps-gains-momentum-rises-10-in-the-last-six-months",
+            "tickers": [
+                "GPS",
+                "ANF",
+                "BURL",
+                "DKS"
+            ],
+            "image_url": "https://staticx-tuner.zacks.com/images/articles/main/9e/1321.jpg",
+            "description": "The Gap, Inc. has shown success through strategic efforts like lower airfreight, improved promotions, and cost-cutting actions, leading to a notable increase in its stock price. The company's proactive approach has been validated by upward revisions in earnings estimates, suggesting a promising outlook.",
+            "keywords": [
+                "The Gap",
+                "airfreight",
+                "promotions",
+                "cost-cutting",
+                "earnings estimates"
+            ],
+            "insights": [
+                {
+                    "ticker": "GPS",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article highlights the company's strategic efforts and positive performance, including a notable increase in stock price and upward revisions in earnings estimates, suggesting a promising outlook."
+                },
+                {
+                    "ticker": "ANF",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article mentions Abercrombie & Fitch as a top-ranked stock with a Zacks Rank #1 (Strong Buy) and a strong earnings surprise history, indicating a positive outlook."
+                },
+                {
+                    "ticker": "BURL",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article highlights Burlington Stores as a top-ranked stock with a Zacks Rank #2 (Buy) and a strong earnings surprise history, suggesting a positive outlook."
+                },
+                {
+                    "ticker": "DKS",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article mentions DICK'S Sporting Goods as a top-ranked stock with a Zacks Rank #2 (Buy) and a positive earnings surprise history, indicating a positive outlook."
+                }
+            ]
+        },
+        {
+            "id": "bc14ca6263d8cc5ded52076eb64699cd6cf453f6d7269de7a419e3022bca9f13",
+            "publisher": {
+                "name": "GlobeNewswire Inc.",
+                "homepage_url": "https://www.globenewswire.com",
+                "logo_url": "https://s3.polygon.io/public/assets/news/logos/globenewswire.svg",
+                "favicon_url": "https://s3.polygon.io/public/assets/news/favicons/globenewswire.ico"
+            },
+            "title": "Fast Fashion Global Strategic Business Report 2024: Market to Reach $184.7 Billion by 2030 - Sustainability Concerns ... - GlobeNewswire",
+            "author": "Researchandmarkets.Com",
+            "published_utc": "2024-07-05T09:38:24Z",
+            "article_url": "https://www.globenewswire.com/news-release/2024/07/05/2908969/0/en/Fast-Fashion-Global-Strategic-Business-Report-2024-Market-to-Reach-184-7-Billion-by-2030-Sustainability-Concerns-Generate-Shifts-Towards-Eco-Friendly-Fast-Fashion-Options.html",
+            "tickers": [
+                "FRCOY",
+                "HNNMY",
+                "IDEXY",
+                "GPS",
+                "VSCO"
+            ],
+            "image_url": "https://ml.globenewswire.com/Resource/Download/908fb457-7f8e-4a08-9081-5565e3dfb3d7",
+            "description": "The global fast fashion market is expected to grow to $184.7 billion by 2030, driven by sustainability concerns and the digitalization of fashion retail. However, the deep-rooted presence of fast fashion in consumer culture poses challenges to phasing it out.",
+            "keywords": [
+                "fast fashion",
+                "sustainability",
+                "digitalization",
+                "consumer trends"
+            ],
+            "insights": [
+                {
+                    "ticker": "FRCOY",
+                    "sentiment": "neutral",
+                    "sentiment_reasoning": "The article mentions Fast Retailing Co., Ltd. as one of the key players in the fast fashion industry, but does not offer any specific details about the company's performance or outlook."
+                },
+                {
+                    "ticker": "HNNMY",
+                    "sentiment": "neutral",
+                    "sentiment_reasoning": "The article lists Hennes & Mauritz AB as a major player in the fast fashion market, but does not provide any additional information about the company."
+                },
+                {
+                    "ticker": "IDEXY",
+                    "sentiment": "neutral",
+                    "sentiment_reasoning": "The article includes Industria de Diseno Textil, S.A. in the list of leading fast fashion companies, but does not offer any specific insights about the company's performance or outlook."
+                },
+                {
+                    "ticker": "GPS",
+                    "sentiment": "neutral",
+                    "sentiment_reasoning": "The article mentions The Gap, Inc. as one of the leading fast fashion companies, but does not provide any additional details about the company's performance or outlook."
+                },
+                {
+                    "ticker": "VSCO",
+                    "sentiment": "neutral",
+                    "sentiment_reasoning": "The article includes Victoria's Secret & Co. in the list of major fast fashion players, but does not offer any specific insights about the company's performance or outlook."
+                }
+            ]
+        },
+        {
+            "id": "305772efa2fa284d21f2ffd4d519f70d8fd0aa8c2e7487e8cf701c709e032182",
+            "publisher": {
+                "name": "Zacks Investment Research",
+                "homepage_url": "https://www.zacks.com/",
+                "logo_url": "https://s3.polygon.io/public/assets/news/logos/zacks.png",
+                "favicon_url": "https://s3.polygon.io/public/assets/news/favicons/zacks.ico"
+            },
+            "title": "Deckers' (DECK) DTC Business, Omni-Channel Expansion Bode Well - Zacks Investment Research",
+            "author": "Zacks Investment Research",
+            "published_utc": "2024-07-04T15:31:36Z",
+            "article_url": "https://www.zacks.com/stock/news/2297019/deckers-deck-dtc-business-omni-channel-expansion-bode-well",
+            "tickers": [
+                "DECK",
+                "GPS",
+                "ANF",
+                "GOOS"
+            ],
+            "image_url": "https://staticx-tuner.zacks.com/images/articles/main/2f/478.jpg",
+            "description": "Deckers Outdoor Corporation is well-positioned for sustained growth through strategic initiatives, robust Direct-to-Consumer and wholesale channels, and a focus on expanding its key brands, UGG and HOKA. The company's commitment to customizing its product development, marketing, and omni-channel distribution has yielded substantial results, improving operational performance and advancing long-term strategic objectives.",
+            "keywords": [
+                "Deckers Outdoor Corporation",
+                "UGG",
+                "HOKA",
+                "Direct-to-Consumer",
+                "Wholesale"
+            ],
+            "insights": [
+                {
+                    "ticker": "DECK",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article highlights Deckers' strategic initiatives, robust channels, and focus on expanding its key brands, which have yielded substantial results and improved the company's operational performance and long-term strategic objectives."
+                },
+                {
+                    "ticker": "GPS",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article mentions Gap as a better-ranked stock in the retail space, indicating a positive sentiment."
+                },
+                {
+                    "ticker": "ANF",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article mentions Abercrombie & Fitch as a better-ranked stock in the retail space, indicating a positive sentiment."
+                },
+                {
+                    "ticker": "GOOS",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article mentions Canada Goose as a better-ranked stock in the retail space, indicating a positive sentiment."
+                }
+            ]
+        },
+        {
+            "id": "3fe6983a3cda63ee87b790d7512f3ea56fdd25f6854f0404c5069483d5bd1047",
+            "publisher": {
+                "name": "Zacks Investment Research",
+                "homepage_url": "https://www.zacks.com/",
+                "logo_url": "https://s3.polygon.io/public/assets/news/logos/zacks.png",
+                "favicon_url": "https://s3.polygon.io/public/assets/news/favicons/zacks.ico"
+            },
+            "title": "Lowe's (LOW) Stock Dips 10% in 3 Months: Will it Rebound? - Zacks Investment Research",
+            "author": "Zacks Investment Research",
+            "published_utc": "2024-07-03T15:01:26Z",
+            "article_url": "https://www.zacks.com/stock/news/2296715/lowes-low-stock-dips-10-in-3-months-will-it-rebound",
+            "tickers": [
+                "LOW",
+                "ANF",
+                "GPS",
+                "DKS"
+            ],
+            "image_url": "https://staticx-tuner.zacks.com/images/articles/main/58/467.jpg",
+            "description": "Lowe's Companies, Inc. has experienced a 10.2% decline in its share value over the past three months, underperforming the industry and broader market. The company is facing subdued demand due to various market uncertainties, including economic factors such as inflation, interest rates, and consumer confidence, leading to a projected decline in earnings estimates for the current fiscal year.",
+            "keywords": [
+                "Lowe's Companies, Inc.",
+                "home improvement",
+                "DIY",
+                "inflation",
+                "interest rates",
+                "consumer confidence"
+            ],
+            "insights": [
+                {
+                    "ticker": "LOW",
+                    "sentiment": "negative",
+                    "sentiment_reasoning": "The article highlights that Lowe's has experienced a significant decline in its share value, underperforming the industry and broader market, due to various market uncertainties and subdued demand, leading to a projected decline in earnings estimates."
+                },
+                {
+                    "ticker": "ANF",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article mentions Abercrombie & Fitch as a better-ranked stock with a Zacks Rank #1 (Strong Buy) and a strong earnings surprise history."
+                },
+                {
+                    "ticker": "GPS",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article highlights The Gap as a better-ranked stock with a Zacks Rank #1 and positive growth projections for sales and earnings."
+                },
+                {
+                    "ticker": "DKS",
+                    "sentiment": "positive",
+                    "sentiment_reasoning": "The article mentions DICK'S Sporting Goods as a better-ranked stock with a Zacks Rank #2 (Buy) and positive growth projections for sales and earnings."
+                }
+            ]
+        }
+    ],
+    "status": "OK",
+    "request_id": "8be27b6a3272414cc8f3bd1e3f7b3614",
+    "count": 10,
+    "next_url": "https://api.polygon.io/v2/reference/news?cursor=YXA9MjAyNC0wNy0wM1QxNSUzQTAxJTNBMjZaJmFzPTNmZTY5ODNhM2NkYTYzZWU4N2I3OTBkNzUxMmYzZWE1NmZkZDI1ZjY4NTRmMDQwNGM1MDY5NDgzZDViZDEwNDcmb3JkZXI9ZGVzY2VuZGluZyZ0aWNrZXI9R1BT"
+}

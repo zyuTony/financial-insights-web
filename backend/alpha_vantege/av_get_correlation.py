@@ -22,14 +22,6 @@ url = f'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=I
 
 response = requests.get(url)
 
-if response.status_code == 200:
-    data = response.json()
-    with open('alpha_vantage_data.json', 'w') as file:
-        json.dump(data, file, indent=4)
-    print("Data saved to alpha_vantage_data.json")
-else:
-    print(f"Error fetching data: {response.status_code}")
-
 timeframe = "Time Series (5min)"
 if response.status_code == 200:
     data = response.json()
