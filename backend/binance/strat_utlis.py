@@ -27,6 +27,9 @@ def add_signals_simple_strat(df):
     return df
 
 def add_signals_bb_band(df):
+    short_window = 40
+    long_window = 100
+    
     df['opening_signal'] = 0
     df['closing_signal'] = 0
     
