@@ -14,7 +14,7 @@ def human_to_unix(human_date, date_format='%Y-%m-%d'):
     dt = datetime.datetime.strptime(human_date, date_format)
     return int(dt.timestamp())
 
-def pull_coin_list(num_of_coins, api_key, file_location):
+def pull_coin_list(num_of_coins, api_key):
     url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/listings/latest'
     parameters = {
       'limit':num_of_coins,
@@ -33,24 +33,17 @@ def pull_coin_list(num_of_coins, api_key, file_location):
     try:
       response = session.get(url, params=parameters)
       data = response.json()
-      with open(file_location, 'w') as file:
-          json.dump(data, file, indent=4)
-      print(f"Data saved to {file_location}")
       return data
     except (ConnectionError, Timeout, TooManyRedirects) as e:
       print(e)
       return -1
 
-def coin_list_json_to_str(json_file):
-    with open(json_file, 'r') as file:
-        data = json.load(file)
+def coin_list_json_to_str(data):
     ids = ','.join(str(item['id']) for item in data['data'])
     symbols = ','.join(item['symbol'] for item in data['data'])
     return ids, symbols
 
-def coin_list_json_to_array(json_file):
-    with open(json_file, 'r') as file:
-        data = json.load(file)
+def coin_list_json_to_array(data):
     ids = [str(item['id']) for item in data['data']]
     symbols = [item['symbol'] for item in data['data']]
     return ids, symbols
