@@ -146,6 +146,7 @@ def run_coint_tests_from_csv(df):
             
             # Perform OLS regression
             ols_result = sm.OLS(series1, sm.add_constant(series2)).fit()
+            # ols_result = sm.OLS(series1, series2).fit()
             
             # Perform cointegration test
             score, p_value, _ = coint(series1, series2)

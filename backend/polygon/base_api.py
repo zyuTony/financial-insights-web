@@ -19,8 +19,9 @@ db_name = 'financial_data'
 # timeframe =
 if api_key is None:
     raise ValueError("API key is missing. Please set it in the .env file.")
-url = f'https://api.polygon.io/v2/reference/news?ticker=GPS&limit=10&apiKey={api_key}'
-saved_file_name = "polygon_data_news"
+# url = f'https://api.polygon.io/v2/reference/news?ticker=GPS&limit=10&apiKey={api_key}'
+url = f'https://api.polygon.io/v3/reference/tickers?market=stocks&active=true&limit=100&apiKey={api_key}'
+saved_file_name = "polygon_tickers"
 
 response = requests.get(url)
 
