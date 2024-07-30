@@ -7,8 +7,6 @@ AVAN_CHECKPOINT_FILE = './data/checkpoints/avan_checkpoint.json'
 AVAN_JSON_PATH = './data/avan_raw_json'
 AVAN_SLEEP_TIME = 0.8
 
-
-
 ROLLING_COINT_START_DATE = '2023-01-01'
 ROLLING_COINT_END_DATE = '2024-07-01'
 ROLLING_COINT_WINDOW = 30

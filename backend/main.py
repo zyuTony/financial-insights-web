@@ -37,11 +37,5 @@ JSON->calculate rolling coint -> calculate signal
 '''
 get_multi_pairs_rolling_coint(config.COIN_PRICE_CSV, config.ROLLING_COINT_TOP_N, config.ROLLING_COINT_COIN_CHECKPOINT_FILE, config.COIN_COINT_RESULT_CSV)
 
-'''
-JSON -> SQL
-'''
 
 
-'''
-rolling coint, signal -> SQL
-'''
