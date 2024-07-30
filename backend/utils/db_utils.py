@@ -74,7 +74,7 @@ def create_stock_pair_coint_table(conn):
     cursor = conn.cursor()
     try:
         create_table_query = """
-        CREATE TABLE IF NOT EXISTS stock_pairs_coint (
+        CREATE TABLE IF NOT EXISTS pairs_coint (
             date TIMESTAMPTZ NOT NULL,
             window_length INT NOT NULL,
             stock1 VARCHAR(50) NOT NULL,
@@ -184,6 +184,24 @@ def insert_stock_pair_coint_table(conn, csv_as_tuple):
     cursor = conn.cursor()
     insert_query = """
     INSERT INTO stock_pairs_coint (date, window_length, stock1, stock2, pvalue)
+    VALUES %s
+    ON CONFLICT DO NOTHING
+    """
+    try:      
+        chunk_size = 100
+        for i in tqdm(range(0, len(csv_as_tuple), chunk_size), desc="Inserting data"):
+            execute_values(cursor, insert_query, csv_as_tuple[i:i+chunk_size])
+        conn.commit()
+    except Exception as e:
+        print(f"Failed to insert data: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
+
+def insert_coin_pair_coint_table(conn, csv_as_tuple):
+    cursor = conn.cursor()
+    insert_query = """
+    INSERT INTO coin_pairs_coint (date, window_length, coin1, coin2, pvalue)
     VALUES %s
     ON CONFLICT DO NOTHING
     """
