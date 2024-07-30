@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 import json
 import pandas as pd 
-from cmc_utlis import * 
+from backend.utils.cmc_utils import * 
  
 top_n_coins = 100
 interval = '24h' 

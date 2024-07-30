@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from backend.strat_testing.strat_utlis import *
+from backend.utils.strat_utils import *
 import json 
 
 file = '../data/SPY_DAILY_data.csv'

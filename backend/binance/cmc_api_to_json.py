@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 import json
 import pandas as pd
 from sqlalchemy import create_engine
-from cmc_utlis import * 
+from backend.utils.cmc_utils import * 
 import time
 
 

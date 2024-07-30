@@ -12,8 +12,6 @@ password = os.getenv('RDS_PASSWORD')
 endpoint = os.getenv('RDS_ENDPOINT') 
 db_name = 'financial_data' 
 
-
-
 # API data retrieval
 # function =
 # ticker =

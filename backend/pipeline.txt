@@ -11,3 +11,11 @@ How to use stock analyze pipeline?
 
 3. Look at output in the /binance folder
   - for now, dont really see a consistently winning stragegy
+
+BN -> JSON 
+AVAN -> JSON 
+
+JSON -> calculate rolling coint -> calculate signal
+
+JSON -> SQL
+rolling coint, signal -> SQL
