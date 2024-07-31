@@ -33,9 +33,13 @@ interval = 'DAILY'
 avan_pull_top_stocks_hist_price_json(avan_api_key, interval, top_n_stocks)
 
 '''
-JSON->calculate rolling coint -> calculate signal
+JSON-> CALCULATE rolling coint 
 '''
 get_multi_pairs_rolling_coint(config.COIN_PRICE_CSV, config.ROLLING_COINT_TOP_N, config.ROLLING_COINT_COIN_CHECKPOINT_FILE, config.COIN_COINT_RESULT_CSV)
 
+get_multi_pairs_rolling_coint(config.STOCK_PRICE_CSV, config.ROLLING_COINT_TOP_N, config.ROLLING_COINT_STOCK_CHECKPOINT_FILE, config.STOCK_COINT_RESULT_CSV)
 
-
+'''
+rolling coint csv -> CALCULATE signal
+'''
+# working in the rolling_coint_analyze

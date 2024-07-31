@@ -19,7 +19,10 @@ def connect_to_db(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD):
     except OperationalError as e:
         print(f"{e}")
         return None
-   
+
+'''
+Table Creations
+'''
 def create_stock_historical_price_table(conn):
     cursor = conn.cursor()
     try:
@@ -114,6 +117,34 @@ def create_coin_pair_coint_table(conn):
     finally:
         cursor.close()
 
+def create_stock_signal_table(conn):
+    cursor = conn.cursor()
+    try:
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS stock_signal (
+            name1 VARCHAR(50) NOT NULL,
+            name2 VARCHAR(50) NOT NULL,
+            pvalue NUMERIC NOT NULL,
+            ols_const NUMERIC NOT NULL,
+            ols_coeff NUMERIC NOT NULL,
+            r_squared NUMERIC NOT NULL,
+            key_score NUMERIC NOT NULL,
+            last_updated TIMESTAMPTZ NOT NULL,
+            UNIQUE (name1, name2, last_updated)
+        );
+        """
+        cursor.execute(create_table_query)
+        conn.commit()
+        print(f"stock_signal created successfully.")
+    except Exception as e:
+        print(f"Failed to create table: {str(e)}")
+        conn.rollback()
+    finally:
+        cursor.close()
+
+'''
+Table insertion
+'''
 def insert_stock_historical_price_table(conn, file_path):
     cursor = conn.cursor()
     try:
@@ -202,6 +233,24 @@ def insert_coin_pair_coint_table(conn, csv_as_tuple):
     cursor = conn.cursor()
     insert_query = """
     INSERT INTO coin_pairs_coint (date, window_length, coin1, coin2, pvalue)
+    VALUES %s
+    ON CONFLICT DO NOTHING
+    """
+    try:      
+        chunk_size = 100
+        for i in tqdm(range(0, len(csv_as_tuple), chunk_size), desc="Inserting data"):
+            execute_values(cursor, insert_query, csv_as_tuple[i:i+chunk_size])
+        conn.commit()
+    except Exception as e:
+        print(f"Failed to insert data: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
+
+def insert_stock_signal_table(conn, csv_as_tuple):
+    cursor = conn.cursor()
+    insert_query = """
+    INSERT INTO stock_signal (name1, name2, pvalue, ols_const, ols_coeff, r_squared, key_score, last_updated)
     VALUES %s
     ON CONFLICT DO NOTHING
     """
