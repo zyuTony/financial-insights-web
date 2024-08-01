@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("PRISMA_DATABASE_URL")
+}
+
+model coin_historical_price {
+  id     Int      @id @default(autoincrement())
+  symbol String   @db.VarChar(10)
+  date   DateTime @db.Timestamptz(6)
+  open   Decimal  @db.Decimal
+  high   Decimal  @db.Decimal
+  low    Decimal  @db.Decimal
+  close  Decimal  @db.Decimal
+  volume Decimal  @db.Decimal
+
+  @@unique([symbol, date])
+}
+
+model coin_pairs_coint {
+  date          DateTime @db.Timestamptz(6)
+  window_length Int
+  coin1         String   @db.VarChar(50)
+  coin2         String   @db.VarChar(50)
+  pvalue        Decimal  @db.Decimal
+
+  @@unique([date, coin1, coin2])
+}
+
+model stock_historical_price {
+  id     Int      @id @default(autoincrement())
+  symbol String   @db.VarChar(10)
+  date   DateTime @db.Timestamptz(6)
+  open   Decimal  @db.Decimal
+  high   Decimal  @db.Decimal
+  low    Decimal  @db.Decimal
+  close  Decimal  @db.Decimal
+  volume BigInt
+
+  @@unique([symbol, date])
+}
+
+model stock_pairs_coint {
+  date          DateTime @db.Timestamptz(6)
+  window_length Int
+  stock1        String   @db.VarChar(50)
+  stock2        String   @db.VarChar(50)
+  pvalue        Decimal  @db.Decimal
+
+  @@unique([date, stock1, stock2])
+}
+
+model stock_signal {
+  name1        String   @db.VarChar(50)
+  name2        String   @db.VarChar(50)
+  pvalue       Decimal  @db.Decimal
+  ols_const    Decimal  @db.Decimal
+  ols_coeff    Decimal  @db.Decimal
+  r_squared    Decimal  @db.Decimal
+  key_score    Decimal  @db.Decimal
+  last_updated DateTime @db.Timestamptz(6)
+
+  @@unique([name1, name2, last_updated])
+}
