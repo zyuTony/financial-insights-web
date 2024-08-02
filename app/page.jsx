@@ -12,8 +12,9 @@ export default function Home() {
   if (!data) return <div className="px-10">loading...</div>;
 
   return (
-    <div className="px-20">
-      <h1>Main Table</h1>
+    <div className="px-24  w-auto">
+      {/* explain section */}
+      <h1 className="px-24 py-12">SIGNAL TABLE</h1>
       <SignalTable data={data} />
     </div>
   );
