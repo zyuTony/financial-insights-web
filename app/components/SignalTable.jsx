@@ -1,24 +1,32 @@
 // components/SignalTable.jsx
 "use client";
-
+import Link from "next/link";
 import React from "react";
+import { useState, useEffect } from "react";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css"; // Core grid CSS, always needed
 import "ag-grid-community/styles/ag-theme-alpine.css"; // Optional theme CSS
+import "../lib/AgGridComponent.css";
 
-// pagination filter
-const pagination = true;
-const paginationPageSize = 50;
-const paginationPageSizeSelector = [10, 20, 50, 100];
-
-const gridHeight = "800px";
-const gridWidth = "1200px";
+// const gridHeight = "4000px";
+// const gridWidth = "1200px";
 const gridMinWidth = "800px";
 const gridMaxWidth = "1200px";
+const gridPaginationSize = 25;
+const gridPagination = true;
+const paginationPageSizeSelector = [10, 25, 50];
 
+const gridRowHeight = 35;
 // percentage formatter
 const pctFormatter = (params) => {
   return params.value != null ? (params.value * 100).toFixed(0) + "%" : "";
+};
+
+const getKeyScoresColor = (value, min, max) => {
+  const ratio = (value - min) / (max - min);
+  const green = Math.round(ratio * 170);
+  const color = `rgb(0, ${green}, 0)`;
+  return color;
 };
 
 const SignalTable = ({ data }) => {
@@ -36,22 +44,35 @@ const SignalTable = ({ data }) => {
   More data design:
   Ticker 1 | MC1 | PE ratio 1 | 52 Week range 1 | Ticker 2 | MC2 | PE ratio 2 | 52 Week range 1 | Key Score   
   */
+  const minValue = Math.min(...data.map((row) => row.key_score));
+  const maxValue = Math.max(...data.map((row) => row.key_score));
   const columnDefs = [
     {
-      headerName: "Name 1",
+      //header and text to left; blue text with link; underline when hovered
+      headerName: "Symbol 1",
       field: "name1",
+      cellStyle: { color: "#0073e6", fontWeight: 600 },
+      cellClass: "hover-underline",
+      cellRenderer: (params) => {
+        return <Link href="/todo">{params.value}</Link>;
+      },
       flex: 1,
     },
     {
-      headerName: "Name 2",
+      headerName: "Symbol 2",
       field: "name2",
+      cellStyle: { color: "#0073e6", fontWeight: 600 },
+      cellClass: "hover-underline",
+      cellRenderer: (params) => {
+        return <Link href="/todo">{params.value}</Link>;
+      },
       flex: 1,
     },
     {
       headerName: "P-Value",
       field: "pvalue",
       valueFormatter: (params) => params.value.toFixed(2),
-      cellStyle: { "text-align": "right" },
+      cellStyle: { textAlign: "right" },
       headerClass: "ag-right-aligned-header",
       flex: 1,
     },
@@ -59,7 +80,7 @@ const SignalTable = ({ data }) => {
       headerName: "OLS Constant",
       field: "ols_const",
       valueFormatter: (params) => params.value.toFixed(2),
-      cellStyle: { "text-align": "right" },
+      cellStyle: { textAlign: "right" },
       headerClass: "ag-right-aligned-header",
       flex: 1,
     },
@@ -67,35 +88,42 @@ const SignalTable = ({ data }) => {
       headerName: "OLS Coefficient",
       field: "ols_coeff",
       valueFormatter: (params) => params.value.toFixed(2),
-      cellStyle: { "text-align": "right" },
+      cellStyle: { textAlign: "right" },
       headerClass: "ag-right-aligned-header",
       flex: 1,
     },
     {
       headerName: "R-Squared",
       field: "r_squared",
-      valueFormatter: pctFormatter,
-      cellStyle: { "text-align": "right" },
+      valueFormatter: (params) => {
+        //format as percentage
+        return params.value != null
+          ? (params.value * 100).toFixed(0) + "%"
+          : "";
+      },
+      cellStyle: { textAlign: "right" },
       headerClass: "ag-right-aligned-header",
-      flex: 1.2,
+      flex: 1.1,
     },
     {
       headerName: "Key Score",
       field: "key_score",
       valueFormatter: (params) => params.value.toFixed(2),
-      cellStyle: { "text-align": "right" },
+      cellStyle: (params) => {
+        const color = getKeyScoresColor(params.value, minValue, maxValue);
+        return { color: color, textAlign: "right" };
+      },
       headerClass: "ag-right-aligned-header",
-      minwidth: 200,
-      flex: 1.2,
+      flex: 1.1,
     },
     {
       headerName: "Last Updated",
       field: "last_updated",
       valueFormatter: (params) => new Date(params.value).toLocaleDateString(),
-      cellStyle: { "text-align": "right" },
+      cellStyle: { textAlign: "right" },
       headerClass: "ag-right-aligned-header",
-      minwidth: 200,
-      flex: 1.5,
+      // minWidth: 200, //unused for now
+      flex: 1.1,
     },
   ];
 
@@ -103,7 +131,6 @@ const SignalTable = ({ data }) => {
     <div
       className="ag-theme-alpine"
       style={{
-        height: gridHeight,
         // width: gridWidth,
         minWidth: gridMinWidth,
         maxWidth: gridMaxWidth,
@@ -112,10 +139,13 @@ const SignalTable = ({ data }) => {
       <AgGridReact
         rowData={data}
         columnDefs={columnDefs}
-        pagination={pagination}
-        paginationPageSize={paginationPageSize}
+        pagination={gridPagination}
+        paginationPageSize={gridPaginationSize}
         paginationPageSizeSelector={paginationPageSizeSelector}
+        domLayout="autoHeight" //make table height fit to num of rows
+        rowHeight={gridRowHeight}
         defaultColDef={{
+          // sortable and fixed size
           sortable: true,
           // filter: true,
           resizable: false,

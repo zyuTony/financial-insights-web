@@ -12,7 +12,7 @@ export default function Home() {
   if (!data) return <div className="px-10">loading...</div>;
 
   return (
-    <div className="px-24  w-auto">
+    <div className="px-24 h-auto w-auto">
       {/* explain section */}
       <h1 className="px-24 py-12">SIGNAL TABLE</h1>
       <SignalTable data={data} />
