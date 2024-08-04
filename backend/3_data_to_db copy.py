@@ -56,16 +56,16 @@ for filename in os.listdir(coin_json_folder):
     print(f'Inserted {filename} historical price')
 
 '''
---- ROLLING COINT CSV -> DB - 6000 pairs per min
+--- ROLLING COINT CSV -> DB
 '''
 # stock rolling coint of 120 
 df = pd.read_csv('./data/rolling_coint_result_csv/final_coint_stock_data_top_100.csv')#config.STOCK_COINT_RESULT_CSV
 df.columns = df.columns.str.replace('_p_val$', '', regex=True)
 df_melted = pd.melt(df, id_vars=['date'], var_name='pair_name', value_name='value')
-df_melted[['symbol1', 'symbol2']] = df_melted['pair_name'].str.split('_', expand=True)
+df_melted[['stock1', 'stock2']] = df_melted['pair_name'].str.split('_', expand=True)
 df_melted = df_melted.drop(columns=['pair_name'])
 df_melted['window_length'] = 120
-df_melted = df_melted[['date', 'window_length', 'symbol1', 'symbol2', 'value']]
+df_melted = df_melted[['date', 'window_length', 'stock1', 'stock2', 'value']]
 
 create_stock_pair_coint_table(conn)
 insert_stock_pair_coint_table(conn, list(df_melted.itertuples(index=False, name=None)))
@@ -75,10 +75,10 @@ insert_stock_pair_coint_table(conn, list(df_melted.itertuples(index=False, name=
 df = pd.read_csv('./data/rolling_coint_result_csv/final_coint_binance_data.csv')#config.COIN_COINT_RESULT_CSV
 df.columns = df.columns.str.replace('_p_val$', '', regex=True)
 df_melted = pd.melt(df, id_vars=['date'], var_name='pair_name', value_name='value')
-df_melted[['symbol1', 'symbol2']] = df_melted['pair_name'].str.split('_', expand=True)
+df_melted[['coin1', 'coin2']] = df_melted['pair_name'].str.split('_', expand=True)
 df_melted = df_melted.drop(columns=['pair_name'])
 df_melted['window_length'] = 120
-df_melted = df_melted[['date', 'window_length', 'symbol1', 'symbol2', 'value']]
+df_melted = df_melted[['date', 'window_length', 'coin1', 'coin2', 'value']]
 
 create_coin_pair_coint_table(conn)
 insert_coin_pair_coint_table(conn, list(df_melted.itertuples(index=False, name=None)))

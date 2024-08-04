@@ -157,7 +157,7 @@ def create_stock_pair_coint_table(conn):
     cursor = conn.cursor()
     try:
         create_table_query = """
-        CREATE TABLE IF NOT EXISTS pairs_coint (
+        CREATE TABLE IF NOT EXISTS stock_pairs_coint (
             date TIMESTAMPTZ NOT NULL,
             window_length INT NOT NULL,
             symbol1 VARCHAR(50) NOT NULL,
