@@ -95,7 +95,6 @@ def agg_data_to_csv(output_file, coin_list=None, num_of_coins=200):
     print("Data has been written to coin_prices.csv")
     return df
 
-
 def run_coint_tests_from_csv(df):
     results = []
     n = df.shape[1]

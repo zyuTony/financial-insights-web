@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 import psycopg2
 from psycopg2 import OperationalError
 from psycopg2.extras import execute_values
@@ -42,7 +43,6 @@ def create_stock_historical_price_table(conn):
     try:
         create_table_query = """
         CREATE TABLE IF NOT EXISTS stock_historical_price (
-            id SERIAL PRIMARY KEY,
             symbol VARCHAR(10) NOT NULL,
             date TIMESTAMPTZ NOT NULL,
             open NUMERIC NOT NULL,
@@ -134,8 +134,7 @@ def create_coin_historical_price_table(conn):
     try:
         create_table_query = """
         CREATE TABLE IF NOT EXISTS coin_historical_price (
-            id SERIAL PRIMARY KEY,
-            symbol VARCHAR(10) NOT NULL,
+            symbol VARCHAR(20) NOT NULL,
             date TIMESTAMPTZ NOT NULL,
             open NUMERIC NOT NULL,
             high NUMERIC NOT NULL,
@@ -161,10 +160,10 @@ def create_stock_pair_coint_table(conn):
         CREATE TABLE IF NOT EXISTS pairs_coint (
             date TIMESTAMPTZ NOT NULL,
             window_length INT NOT NULL,
-            stock1 VARCHAR(50) NOT NULL,
-            stock2 VARCHAR(50) NOT NULL,
+            symbol1 VARCHAR(50) NOT NULL,
+            symbol2 VARCHAR(50) NOT NULL,
             pvalue NUMERIC NOT NULL,
-            UNIQUE (date, stock1, stock2)
+            UNIQUE (date, symbol1, symbol2)
         );
         """
         cursor.execute(create_table_query)
@@ -183,10 +182,10 @@ def create_coin_pair_coint_table(conn):
         CREATE TABLE IF NOT EXISTS coin_pairs_coint (
             date TIMESTAMPTZ NOT NULL,
             window_length INT NOT NULL,
-            coin1 VARCHAR(50) NOT NULL,
-            coin2 VARCHAR(50) NOT NULL,
+            symbol1 VARCHAR(50) NOT NULL,
+            symbol2 VARCHAR(50) NOT NULL,
             pvalue NUMERIC NOT NULL,
-            UNIQUE (date, coin1, coin2)
+            UNIQUE (date, symbol1, symbol2)
         );
         """
         cursor.execute(create_table_query)
@@ -203,15 +202,15 @@ def create_stock_signal_table(conn):
     try:
         create_table_query = """
         CREATE TABLE IF NOT EXISTS stock_signal (
-            name1 VARCHAR(50) NOT NULL,
-            name2 VARCHAR(50) NOT NULL,
+            symbol1 VARCHAR(50) NOT NULL,
+            symbol2 VARCHAR(50) NOT NULL,
             pvalue NUMERIC NOT NULL,
             ols_const NUMERIC NOT NULL,
             ols_coeff NUMERIC NOT NULL,
             r_squared NUMERIC NOT NULL,
             key_score NUMERIC NOT NULL,
             last_updated TIMESTAMPTZ NOT NULL,
-            UNIQUE (name1, name2, last_updated)
+            UNIQUE (symbol1, symbol2, last_updated)
         );
         """
         cursor.execute(create_table_query)
@@ -228,15 +227,15 @@ def create_coin_signal_table(conn):
     try:
         create_table_query = """
         CREATE TABLE IF NOT EXISTS coin_signal (
-            name1 VARCHAR(50) NOT NULL,
-            name2 VARCHAR(50) NOT NULL,
+            symbol1 VARCHAR(50) NOT NULL,
+            symbol2 VARCHAR(50) NOT NULL,
             pvalue NUMERIC NOT NULL,
             ols_const NUMERIC NOT NULL,
             ols_coeff NUMERIC NOT NULL,
             r_squared NUMERIC NOT NULL,
             key_score NUMERIC NOT NULL,
             last_updated TIMESTAMPTZ NOT NULL,
-            UNIQUE (name1, name2, last_updated)
+            UNIQUE (symbol1, symbol2, last_updated)
         );
         """
         cursor.execute(create_table_query)
@@ -276,9 +275,52 @@ def insert_stock_historical_price_table(conn, file_path):
             insert_query = """
             INSERT INTO stock_historical_price (symbol, date, open, high, low, close, volume)
             VALUES %s
-            ON CONFLICT DO NOTHING
+            ON CONFLICT (symbol, date)
+            DO UPDATE SET
+                open = EXCLUDED.open,
+                high = EXCLUDED.high,
+                low = EXCLUDED.low,
+                close = EXCLUDED.close,
+                volume = EXCLUDED.volume
             """
             execute_values(cursor, insert_query, records)
+            conn.commit()
+    except Exception as e:
+        print(f"Failed to insert data from {file_path}: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
+
+def insert_coin_historical_price_table(conn, file_path):
+    cursor = conn.cursor()
+    try:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+
+            extracted_data = []
+            for entry in data:
+                symbol_name = os.path.splitext(os.path.basename(file_path))[0]
+                open_time = pd.to_datetime(entry[0], unit='ms').strftime('%Y-%m-%d')
+                open_price = entry[1]
+                high_price = entry[2]
+                low_price = entry[3]
+                close_price = entry[4]
+                volume = entry[5]
+                extracted_data.append([symbol_name, open_time, open_price, high_price, low_price, close_price, volume])
+            
+            # Insert data into the database
+            insert_query = """
+            INSERT INTO coin_historical_price (symbol, date, open, high, low, close, volume)
+            VALUES %s
+            ON CONFLICT (symbol, date)
+            DO UPDATE SET
+                open = EXCLUDED.open,
+                high = EXCLUDED.high,
+                low = EXCLUDED.low,
+                close = EXCLUDED.close,
+                volume = EXCLUDED.volume
+            """
+            execute_values(cursor, insert_query, extracted_data)
             conn.commit()
     except Exception as e:
         print(f"Failed to insert data from {file_path}: {e}")
@@ -436,7 +478,7 @@ def insert_stock_overview_table(conn, file_path):
 def insert_stock_pair_coint_table(conn, csv_as_tuple):
     cursor = conn.cursor()
     insert_query = """
-    INSERT INTO stock_pairs_coint (date, window_length, stock1, stock2, pvalue)
+    INSERT INTO stock_pairs_coint (date, window_length, symbol1, symbol2, pvalue)
     VALUES %s
     ON CONFLICT DO NOTHING
     """
@@ -454,7 +496,7 @@ def insert_stock_pair_coint_table(conn, csv_as_tuple):
 def insert_coin_pair_coint_table(conn, csv_as_tuple):
     cursor = conn.cursor()
     insert_query = """
-    INSERT INTO coin_pairs_coint (date, window_length, coin1, coin2, pvalue)
+    INSERT INTO coin_pairs_coint (date, window_length, symbol1, symbol2, pvalue)
     VALUES %s
     ON CONFLICT DO NOTHING
     """
@@ -472,7 +514,7 @@ def insert_coin_pair_coint_table(conn, csv_as_tuple):
 def insert_stock_signal_table(conn, csv_as_tuple):
     cursor = conn.cursor()
     insert_query = """
-    INSERT INTO stock_signal (name1, name2, pvalue, ols_const, ols_coeff, r_squared, key_score, last_updated)
+    INSERT INTO stock_signal (symbol1, symbol2, pvalue, ols_const, ols_coeff, r_squared, key_score, last_updated)
     VALUES %s
     ON CONFLICT DO NOTHING
     """
@@ -490,7 +532,7 @@ def insert_stock_signal_table(conn, csv_as_tuple):
 def insert_coin_signal_table(conn, csv_as_tuple):
     cursor = conn.cursor()
     insert_query = """
-    INSERT INTO coin_signal (name1, name2, pvalue, ols_const, ols_coeff, r_squared, key_score, last_updated)
+    INSERT INTO coin_signal (symbol1, symbol2, pvalue, ols_const, ols_coeff, r_squared, key_score, last_updated)
     VALUES %s
     ON CONFLICT DO NOTHING
     """
