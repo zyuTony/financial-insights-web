@@ -6,6 +6,7 @@ BN_MAX_RETRIES = 3
 '''AVAN JSON RETREIVAL'''
 SEC_STOCK_TICKERS = './data/sec_stock_tickers.json'
 AVAN_CHECKPOINT_FILE = './data/checkpoints/avan_checkpoint.json'
+AVAN_OVERVIEW_CHECKPOINT_FILE = './data/checkpoints/avan_overview_checkpoint.json'
 AVAN_JSON_PATH = './data/avan_raw_json'
 AVAN_SLEEP_TIME = 0.8
 
