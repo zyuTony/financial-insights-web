@@ -15,6 +15,31 @@ from utils.cmc_utils import *
 import config
 
 
+def bn_pull_input_coins_hist_price_json(symbols, bn_api_key, bn_api_secret, start_date, end_date, interval, interval_name):
+  coin_ids = [symbol+'USDT' for symbol in symbols]
+  print(coin_ids)
+
+  # --- Binance
+  client = Client(bn_api_key, bn_api_secret)
+  # pull data to json
+  if os.path.exists('./data/checkpoints/alt_analysis_data.json'):
+      with open('./data/checkpoints/alt_analysis_data.json', 'r') as file:
+          checkpoint_data = json.load(file)
+  else:
+      checkpoint_data = []
+
+  for coin_id in coin_ids:
+      if coin_id in checkpoint_data:
+          print(f"Skipping {coin_id}, already downloaded.")
+          continue
+      status = get_ticker_by_interval_name(client, coin_id, interval, interval_name, start_date, end_date, './data/alt_analysis_data')
+      if status == 1:
+          checkpoint_data.append(coin_id)
+          with open('./data/checkpoints/alt_analysis_data.json', 'w') as file:
+              json.dump(checkpoint_data, file, indent=4)
+  print('Download completed! :)')
+
+
 def bn_pull_top_coins_hist_price_json(cmc_api_key, bn_api_key, bn_api_secret, start_date, end_date, interval, interval_name, top_n_coins=300):
   # --- CMC
   data = pull_coin_list(top_n_coins, cmc_api_key)
@@ -35,20 +60,20 @@ def bn_pull_top_coins_hist_price_json(cmc_api_key, bn_api_key, bn_api_secret, st
       if coin_id in checkpoint_data:
           print(f"Skipping {coin_id}, already downloaded.")
           continue
-      status = get_ticker_by_interval_name(client, coin_id, interval, interval_name, start_date, end_date)
+      status = get_ticker_by_interval_name(client, coin_id, interval, interval_name, start_date, end_date, config.BN_JSON_PATH)
       if status == 1:
           checkpoint_data.append(coin_id)
           with open(config.BN_CHECKPOINT_FILE, 'w') as file:
               json.dump(checkpoint_data, file, indent=4)
   print('Download completed! :)')
 
-def get_ticker_by_interval_name(client, coin_id, interval, interval_name, start_date, end_date):
+def get_ticker_by_interval_name(client, coin_id, interval, interval_name, start_date, end_date, download_folder):
     retry_count = 0
     while retry_count < config.BN_MAX_RETRIES:
         try:
             # Get data and save to JSON
             ticker_data = client.get_historical_klines(coin_id, interval, start_date, end_date)
-            with open(config.BN_JSON_PATH + f'/{interval_name}/{coin_id}.json', 'w') as file:
+            with open(download_folder + f'/{interval_name}/{coin_id}.json', 'w') as file:
                 json.dump(ticker_data, file, indent=4)
                 print(f'Downloaded {coin_id}')
             return 1  

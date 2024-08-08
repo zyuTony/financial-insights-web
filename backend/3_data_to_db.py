@@ -12,7 +12,7 @@ DB_NAME = 'financial_data'
 
 stock_json_folder = config.AVAN_JSON_PATH +'/avan_data_DAILY'
 stock_overview_json_folder = config.AVAN_JSON_PATH +'/avan_stock_OVERVIEW'
-coin_json_folder = config.BN_JSON_PATH +'/binance_data_1DAY'
+coin_json_folder = config.BN_JSON_PATH +'/1DAY'
  
 conn = connect_to_db(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)
 
@@ -95,5 +95,14 @@ insert_coin_signal_table(conn, list(pd.read_csv(config.COIN_SIGNAL_CSV).itertupl
 create_stock_signal_table(conn)
 insert_stock_signal_table(conn, list(pd.read_csv(config.STOCK_SIGNAL_CSV).itertuples(index=False, name=None)))
 
+'''
+--- transform to final output
+'''
+# stock
+get_stock_signal_api_output_table(conn)
 
+# coin
+
+
+# FIN
 conn.close()

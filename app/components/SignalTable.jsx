@@ -22,6 +22,20 @@ const pctFormatter = (params) => {
   return params.value != null ? (params.value * 100).toFixed(0) + "%" : "";
 };
 
+const mcFormater = (number) => {
+  if (number >= 1e12) {
+    return (number / 1e12).toFixed(3) + "T";
+  } else if (number >= 1e9) {
+    return (number / 1e9).toFixed(1) + "B";
+  } else if (number >= 1e6) {
+    return (number / 1e6).toFixed(0) + "M";
+  } else if (number >= 1e3) {
+    return (number / 1e3).toFixed(0) + "K";
+  } else {
+    return number.toFixed(2);
+  }
+};
+
 const getKeyScoresColor = (value, min, max) => {
   const ratio = (value - min) / (max - min);
   const green = Math.round(ratio * 170);
@@ -42,7 +56,7 @@ const SignalTable = ({ data }) => {
   */
   /*
   More data design:
-  Ticker 1 | MC1 | PE ratio 1 | 52 Week range 1 | Ticker 2 | MC2 | PE ratio 2 | 52 Week range 1 | Key Score   
+  Symbol 1 | MC1 | PE ratio 1 | 52 Week range 1 | Symbol 2 | MC2 | PE ratio 2 | 52 Week range 1 | Key Score   
   */
   const minValue = Math.min(...data.map((row) => row.key_score));
   const maxValue = Math.max(...data.map((row) => row.key_score));
@@ -50,7 +64,7 @@ const SignalTable = ({ data }) => {
     {
       //header and text to left; blue text with link; underline when hovered
       headerName: "Symbol 1",
-      field: "name1",
+      field: "symbol1",
       cellStyle: { color: "#0073e6", fontWeight: 600 },
       cellClass: "hover-underline",
       cellRenderer: (params) => {
@@ -59,13 +73,47 @@ const SignalTable = ({ data }) => {
       flex: 1,
     },
     {
+      headerName: "Market Cap 1",
+      field: "market_cap_1",
+      valueFormatter: (params) => mcFormater(params.value),
+      cellStyle: { textAlign: "right" },
+      headerClass: "ag-right-aligned-header",
+      flex: 1,
+    },
+    {
+      headerName: "PE ratio 1",
+      field: "pe_ratio_1",
+      valueFormatter: (params) =>
+        params.value != null ? params.value.toFixed(2) : "N/A",
+      cellStyle: { textAlign: "right" },
+      headerClass: "ag-right-aligned-header",
+      flex: 1,
+    },
+    {
       headerName: "Symbol 2",
-      field: "name2",
+      field: "symbol2",
       cellStyle: { color: "#0073e6", fontWeight: 600 },
       cellClass: "hover-underline",
       cellRenderer: (params) => {
         return <Link href="/todo">{params.value}</Link>;
       },
+      flex: 1,
+    },
+    {
+      headerName: "Market Cap 2",
+      field: "market_cap_2",
+      valueFormatter: (params) => mcFormater(params.value),
+      cellStyle: { textAlign: "right" },
+      headerClass: "ag-right-aligned-header",
+      flex: 1,
+    },
+    {
+      headerName: "PE ratio 2",
+      field: "pe_ratio_2",
+      valueFormatter: (params) =>
+        params.value != null ? params.value.toFixed(2) : "N/A",
+      cellStyle: { textAlign: "right" },
+      headerClass: "ag-right-aligned-header",
       flex: 1,
     },
     {

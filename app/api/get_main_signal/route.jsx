@@ -2,15 +2,15 @@ import { prisma } from "../../lib/prisma";
 
 export async function GET() {
   try {
-    const signals = await prisma.stock_signal.findMany({
+    const signals = await prisma.signal_api_output.findMany({
       where: {
         pvalue: { lt: 0.05 },
       },
       orderBy: {
         key_score: "desc",
       },
-      take: 100,
     });
+
     const formattedSignals = signals.map((signal) => ({
       ...signal,
       pvalue: parseFloat(signal.pvalue),
@@ -18,25 +18,32 @@ export async function GET() {
       ols_coeff: parseFloat(signal.ols_coeff),
       r_squared: parseFloat(signal.r_squared),
       key_score: parseFloat(signal.key_score),
+      market_cap_1: signal.market_cap_1 ? parseInt(signal.market_cap_1) : null,
+      market_cap_2: signal.market_cap_2 ? parseInt(signal.market_cap_2) : null,
+      pe_ratio_1: signal.pe_ratio_1 ? parseFloat(signal.pe_ratio_1) : null,
+      pe_ratio_2: signal.pe_ratio_2 ? parseFloat(signal.pe_ratio_2) : null,
+      target_price_1: signal.target_price_1
+        ? parseFloat(signal.target_price_1)
+        : null,
+      target_price_2: signal.target_price_2
+        ? parseFloat(signal.target_price_2)
+        : null,
     }));
+
     return new Response(JSON.stringify(formattedSignals), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: "Failed to retrieve" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        error: "Failed to retrieve data",
+        message: error.message,
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 }
-
-// export const config = {
-//   api: {
-//     bodyParser: {
-//       sizeLimit: "1mb",
-//     },
-//   },
-//   // Specifies the maximum allowed duration for this function to execute (in seconds)
-//   maxDuration: 5,
-// };

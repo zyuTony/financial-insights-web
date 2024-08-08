@@ -15,4 +15,5 @@ coin_json_folder = config.BN_JSON_PATH +'/binance_data_1DAY'
 conn = connect_to_db(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)
 
 
+
 conn.close()

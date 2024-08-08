@@ -32,8 +32,8 @@ avan_api_key = os.getenv('ALPHA_VANTAGE_PREM_API')
 
 '''BN->JSON'''
 start_date='1 Jan, 2020'
-end_date='1 July, 2024'
-top_n_coins=10
+end_date='6 Aug, 2024'
+top_n_coins=200
 interval = Client.KLINE_INTERVAL_1DAY
 interval_name = '1DAY'
 

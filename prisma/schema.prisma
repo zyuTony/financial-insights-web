@@ -130,3 +130,23 @@ model stock_overview {
   dividenddate               DateTime? @db.Date
   exdividenddate             DateTime? @db.Date
 }
+
+
+model signal_api_output {
+  symbol1        String   @db.VarChar(50)
+  market_cap_1   BigInt?
+  pe_ratio_1     Decimal? @db.Decimal(10, 2)
+  target_price_1 Decimal? @db.Decimal(10, 2)
+  symbol2        String   @db.VarChar(50)
+  market_cap_2   BigInt?
+  pe_ratio_2     Decimal? @db.Decimal(10, 2)
+  target_price_2 Decimal? @db.Decimal(10, 2)
+  key_score      Decimal? @db.Decimal
+  pvalue         Decimal? @db.Decimal
+  r_squared      Decimal? @db.Decimal
+  ols_const      Decimal? @db.Decimal
+  ols_coeff      Decimal? @db.Decimal
+  last_updated   DateTime @db.Timestamptz(6)
+
+  @@unique([symbol1, symbol2, last_updated])
+}

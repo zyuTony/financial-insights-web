@@ -4,7 +4,6 @@ import psycopg2
 from psycopg2 import OperationalError
 from psycopg2.extras import execute_values
 from datetime import datetime, timezone
-from utils.db_utils import *
 import json
 from tqdm import tqdm 
 
@@ -543,6 +542,67 @@ def insert_coin_signal_table(conn, csv_as_tuple):
         conn.commit()
     except Exception as e:
         print(f"Failed to insert data: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
+
+# Post SQL Operations
+def get_stock_signal_api_output_table(conn):
+    
+    cursor = conn.cursor()
+    try:
+        create_table_query = """
+        CREATE TABLE signal_api_output (
+            symbol1 VARCHAR(50) NOT NULL,
+            market_cap_1 BIGINT,
+            pe_ratio_1 DECIMAL(10, 2),
+            target_price_1 DECIMAL(10, 2),
+            symbol2 VARCHAR(50) NOT NULL,
+            market_cap_2 BIGINT,
+            pe_ratio_2 DECIMAL(10, 2),
+            target_price_2 DECIMAL(10, 2),
+            key_score DECIMAL,
+            pvalue DECIMAL,
+            r_squared DECIMAL,
+            ols_const DECIMAL,
+            ols_coeff DECIMAL,
+            last_updated TIMESTAMPTZ NOT NULL,
+            PRIMARY KEY (symbol1, symbol2, last_updated)
+        );
+        """
+        cursor.execute(create_table_query)
+
+        insert_data_query = """
+        INSERT INTO signal_api_output (symbol1, market_cap_1, pe_ratio_1, target_price_1, symbol2, market_cap_2, pe_ratio_2, target_price_2, key_score, pvalue, r_squared, ols_const, ols_coeff, last_updated)
+        SELECT 
+            a.symbol1, 
+            b.MarketCapitalization AS market_cap_1, 
+            b.PERatio AS pe_ratio_1, 
+            b.AnalystTargetPrice AS target_price_1,
+            a.symbol2, 
+            c.MarketCapitalization AS market_cap_2, 
+            c.PERatio AS pe_ratio_2, 
+            c.AnalystTargetPrice AS target_price_2,
+            a.key_score, 
+            a.pvalue,
+            a.r_squared, 
+            a.ols_const, 
+            a.ols_coeff, 
+            a.last_updated
+        FROM 
+            stock_signal a 
+        JOIN 
+            stock_overview b ON a.symbol1 = b.symbol
+        JOIN 
+            stock_overview c ON a.symbol2 = c.symbol
+        ORDER BY 
+            a.key_score DESC;
+        """
+        cursor.execute(insert_data_query)
+        conn.commit()
+        print(f"signal_api_output created successfully.")
+    except Exception as e:
+        print(f"Failed to get table: {str(e)}")
         conn.rollback()
     finally:
         cursor.close()
