@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 import json
-import config
+from config import *
 from statsmodels.tsa.stattools import coint
 import statsmodels.api as sm
 import config
@@ -43,11 +43,11 @@ def get_multi_pairs_rolling_coint(price_data, top_n_data, checkpoint_file, resul
     df = pd.read_csv(price_data)
     df['date'] = pd.to_datetime(df['date'])
 
-    start_date_index = df.index[df['date'] >= config.ROLLING_COINT_START_DATE][0]
-    adjusted_start_date_index = max(0, start_date_index - config.ROLLING_COINT_WINDOW)
+    start_date_index = df.index[df['date'] >= ROLLING_COINT_START_DATE][0]
+    adjusted_start_date_index = max(0, start_date_index - ROLLING_COINT_WINDOW)
 
     df = df.iloc[adjusted_start_date_index:]
-    date = df['date'][config.ROLLING_COINT_WINDOW:].reset_index(drop=True)
+    date = df['date'][ROLLING_COINT_WINDOW:].reset_index(drop=True)
     df = df.drop('date', axis=1)
     df = df.iloc[:,:top_n_data]
 
@@ -73,7 +73,7 @@ def get_multi_pairs_rolling_coint(price_data, top_n_data, checkpoint_file, resul
             try:
                 data2 = df.iloc[:, j]
                 print(f'Working on {name1} X {name2}')
-                res = rolling_cointegration(name1, data1, name2, data2, config.ROLLING_COINT_WINDOW)
+                res = rolling_cointegration(name1, data1, name2, data2, ROLLING_COINT_WINDOW)
                 results = pd.concat([results, res], axis=1)
                 checkpoint_data.append([name1, name2])
             except Exception as e:
@@ -108,6 +108,8 @@ def min_cont_coint_check(df, x, threshold=0.05):
 def coint_pct_eval(df, hist_len, recent_len, recent2_len, pval=0.05):
     hist_coint_cnt = []
     hist_tlt_cnt = []
+    most_recent_coint_cnt = []
+    most_recent_tlt_cnt = []
     recent_coint_cnt = []
     recent_tlt_cnt = []
     recent2_coint_cnt = []
@@ -127,6 +129,11 @@ def coint_pct_eval(df, hist_len, recent_len, recent2_len, pval=0.05):
         recent2_coint_cnt.append(int((df[col][-recent2_len:] <= pval).sum()))
         recent2_tlt_cnt.append(len(df[col][-recent2_len:]))
         
+        most_recent_len = 14
+        most_recent_len = min(most_recent_len, len(df[col]))
+        most_recent_coint_cnt.append(int((df[col][-most_recent_len:] <= pval).sum()))
+        most_recent_tlt_cnt.append(len(df[col][-most_recent_len:]))
+
         cols.append(col)
 
     result_df = pd.DataFrame({
@@ -136,10 +143,18 @@ def coint_pct_eval(df, hist_len, recent_len, recent2_len, pval=0.05):
         'recent_coint_cnt': recent_coint_cnt,
         'recent_tlt_cnt': recent_tlt_cnt,
         'recent2_coint_cnt': recent2_coint_cnt,
-        'recent2_tlt_cnt': recent2_tlt_cnt
+        'recent2_tlt_cnt': recent2_tlt_cnt,
+        'most_recent_coint_cnt': most_recent_coint_cnt,
+        'most_recent_tlt_cnt': most_recent_tlt_cnt,
+        
     })
 
     result_df['key_score'] = (result_df['hist_coint_cnt'] / result_df['hist_tlt_cnt']) + 2*(result_df['recent2_coint_cnt'] / result_df['recent2_tlt_cnt']) + 3*(result_df['recent_coint_cnt'] / result_df['recent_tlt_cnt']) 
+
+    result_df['hist_coint_pct'] = result_df['hist_coint_cnt'] / result_df['hist_tlt_cnt']
+    result_df['recent2_coint_pct'] = result_df['recent2_coint_cnt'] / result_df['recent2_tlt_cnt']
+    result_df['recent_coint_pct'] = result_df['recent_coint_cnt'] / result_df['recent_tlt_cnt']
+    result_df['most_recent_coint_pct'] = (result_df['most_recent_coint_cnt'] / result_df['most_recent_tlt_cnt'])  
     return result_df
  
 def get_ols_coeff(name1, name2, series1, series2):
@@ -157,7 +172,7 @@ def get_ols_coeff(name1, name2, series1, series2):
     }
 
 def get_multi_pairs_ols_coeff(hist_price_df, col_name):
-    hist_price_df = hist_price_df.iloc[-config.OLS_WINDOW:] # use last 120 days to get coeff
+    hist_price_df = hist_price_df.iloc[-OLS_WINDOW:] # use last 120 days to get coeff
     last_updated = hist_price_df['date'].iloc[-1]
     hist_price_df = hist_price_df.drop('date', axis=1)
     result = []
@@ -176,15 +191,14 @@ def get_multi_pairs_ols_coeff(hist_price_df, col_name):
 def get_signal(coint_file_path, hist_price_file_path):
     #rolling coint-> signal
     rolling_coint_df = pd.read_csv(coint_file_path)
-    signal_df = coint_pct_eval(rolling_coint_df, config.HIST_WINDOW_SIG_EVAL, config.RECENT_WINDOW_SIG_EVAL, config.RECENT_WINDOW2_SIG_EVAL)
+    signal_df = coint_pct_eval(rolling_coint_df, HIST_WINDOW_SIG_EVAL, RECENT_WINDOW_SIG_EVAL, RECENT_WINDOW2_SIG_EVAL)
 
     #signaled pairs -> use price data to get OLS COEFF
     hist_price_df = pd.read_csv(hist_price_file_path)
     ols_df = get_multi_pairs_ols_coeff(hist_price_df, signal_df['name'])
 
-    result = pd.concat([signal_df['key_score'].reset_index(drop=True), ols_df.reset_index(drop=True)], axis=1)
+    result = pd.concat([signal_df.reset_index(drop=True), ols_df.reset_index(drop=True)], axis=1)
 
     # reorder the data
-    result = result[['name1', 'name2', 'P-Value', 'OLS-constant', 'OLS-coeff', 'Adjusted-R-squared', 'key_score', 'last_updated']]
-    result.to_csv('./data/test.csv', index=False)
+    # result = result[['name1', 'name2', 'P-Value', 'OLS-constant', 'OLS-coeff', 'Adjusted-R-squared', 'key_score', 'last_updated']]
     return result

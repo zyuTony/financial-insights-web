@@ -3,7 +3,22 @@ import os
 import json
 import time
 import config
+import pandas as pd
 
+def avan_single_json_append_to_csv(json_file):
+    with open(json_file, 'r') as file:
+        data = json.load(file)
+        symbol = data["Meta Data"]["2. Symbol"]
+        daily_data = data["Time Series (Daily)"]
+        
+        # Create a dataframe with Date and Close price
+        df = pd.DataFrame({
+            'Date': list(daily_data.keys()),
+            symbol: [daily_data[date]["4. close"] for date in daily_data]
+        })
+        df['Date'] = pd.to_datetime(df['Date'])
+        return df
+    
 def avan_pull_stock_data(interval, ticker, avan_api_key):
     url = f'https://www.alphavantage.co/query?function=TIME_SERIES_{interval}&symbol={ticker}&outputsize=full&apikey={avan_api_key}'
 
@@ -34,16 +49,7 @@ def avan_pull_stock_overview(ticker, avan_api_key):
         print(f"Error fetching {ticker}: {response.status_code}")
         return -1
 
-
-def avan_pull_top_stocks_hist_price_json(avan_api_key, interval, top_n_stocks):
-    # get top stock tickers from SEC file
-    with open(config.SEC_STOCK_TICKERS, 'r') as file:
-        data = json.load(file)
-    ticker = []
-    for key, value in data.items():
-        ticker.append(value["ticker"])
-
-    tickers = ticker[:top_n_stocks]
+def avan_pull_stocks_hist_price_to_json(avan_api_key, interval, tickers):
     if os.path.exists(config.AVAN_CHECKPOINT_FILE):
         with open(config.AVAN_CHECKPOINT_FILE, 'r') as file:
             checkpoint_data = json.load(file)
@@ -62,15 +68,7 @@ def avan_pull_top_stocks_hist_price_json(avan_api_key, interval, top_n_stocks):
     print('Download completed! :)')  
 
 
-def avan_pull_top_stocks_overview_json(avan_api_key, top_n_stocks):
-    # get top stock tickers from SEC file
-    with open(config.SEC_STOCK_TICKERS, 'r') as file:
-        data = json.load(file)
-    ticker = []
-    for key, value in data.items():
-        ticker.append(value["ticker"])
-
-    tickers = ticker[:top_n_stocks]
+def avan_pull_stocks_overview_json(avan_api_key, tickers):
     if os.path.exists(config.AVAN_OVERVIEW_CHECKPOINT_FILE):
         with open(config.AVAN_OVERVIEW_CHECKPOINT_FILE, 'r') as file:
             checkpoint_data = json.load(file)
