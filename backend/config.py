@@ -24,7 +24,7 @@ COIN_PRICE_CSV = './data/raw_csv/raw_csv/binance_agg_data.csv'
 #ROLLING COINT CSV CALCULATION#
 # parameters
 ROLLING_COINT_START_DATE = '2023-01-01'
-ROLLING_COINT_END_DATE = '2024-07-01'
+ROLLING_COINT_END_DATE = '2024-08-01'
 ROLLING_COINT_WINDOW = 120
 ROLLING_COINT_TOP_N = 20
 
@@ -53,7 +53,6 @@ def outgoing_call(account_sid, auth_token, to_number):
         url="http://demo.twilio.com/docs/voice.xml",
         to=to_number,
         from_='+18449903647')
-
     print(call.sid)
         
 def send_sms_message(account_sid, auth_token, to_number, message):
@@ -62,6 +61,5 @@ def send_sms_message(account_sid, auth_token, to_number, message):
             body=message,
             from_='+18449903647',
             to=to_number)
-
     print(message.sid)
         

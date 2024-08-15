@@ -49,7 +49,7 @@ select b.sector, a.*
 from stock_historical_price a 
 join top_stocks_by_sector b 
 on a.symbol=b.symbol
-where date between '2022-01-01' and '2024-08-12'
+where date >= '2022-01-01'
 order by marketcapitalization desc, date
 """
 df = pd.read_sql(query, conn)
