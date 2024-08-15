@@ -58,7 +58,7 @@ signal_csv = './data/energy_price_signal.csv'
 
 # # get rolling coint data
 # price_data = pd.read_csv(price_agg_csv)
-# get_multi_pairs_rolling_coint(price_agg_csv, None, price_coint_checkpoint_file, rolling_coint_csv)
+# save_multi_pairs_rolling_coint(price_agg_csv, None, price_coint_checkpoint_file, rolling_coint_csv)
 
 '''
 TRADING SOLUTION:

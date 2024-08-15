@@ -203,13 +203,14 @@ def create_stock_signal_table(conn):
         CREATE TABLE IF NOT EXISTS stock_signal (
             symbol1 VARCHAR(50) NOT NULL,
             symbol2 VARCHAR(50) NOT NULL,
-            pvalue NUMERIC NOT NULL,
-            ols_const NUMERIC NOT NULL,
-            ols_coeff NUMERIC NOT NULL,
-            r_squared NUMERIC NOT NULL,
-            key_score NUMERIC NOT NULL,
+            most_recent_coint_pct NUMERIC NOT NULL, 
+            recent_coint_pct NUMERIC NOT NULL, 
+            hist_coint_pct NUMERIC NOT NULL, 
+            r_squared NUMERIC NOT NULL, 
+            ols_constant NUMERIC NOT NULL, 
+            ols_coeff NUMERIC NOT NULL, 
             last_updated TIMESTAMPTZ NOT NULL,
-            UNIQUE (symbol1, symbol2, last_updated)
+            UNIQUE (symbol1, symbol2)
         );
         """
         cursor.execute(create_table_query)
@@ -228,13 +229,14 @@ def create_coin_signal_table(conn):
         CREATE TABLE IF NOT EXISTS coin_signal (
             symbol1 VARCHAR(50) NOT NULL,
             symbol2 VARCHAR(50) NOT NULL,
-            pvalue NUMERIC NOT NULL,
-            ols_const NUMERIC NOT NULL,
-            ols_coeff NUMERIC NOT NULL,
-            r_squared NUMERIC NOT NULL,
-            key_score NUMERIC NOT NULL,
+            most_recent_coint_pct NUMERIC NOT NULL, 
+            recent_coint_pct NUMERIC NOT NULL, 
+            hist_coint_pct NUMERIC NOT NULL, 
+            r_squared NUMERIC NOT NULL, 
+            ols_constant NUMERIC NOT NULL, 
+            ols_coeff NUMERIC NOT NULL, 
             last_updated TIMESTAMPTZ NOT NULL,
-            UNIQUE (symbol1, symbol2, last_updated)
+            UNIQUE (symbol1, symbol2)
         );
         """
         cursor.execute(create_table_query)
@@ -275,12 +277,7 @@ def insert_stock_historical_price_table(conn, file_path):
             INSERT INTO stock_historical_price (symbol, date, open, high, low, close, volume)
             VALUES %s
             ON CONFLICT (symbol, date)
-            DO UPDATE SET
-                open = EXCLUDED.open,
-                high = EXCLUDED.high,
-                low = EXCLUDED.low,
-                close = EXCLUDED.close,
-                volume = EXCLUDED.volume
+            DO NOTHING
             """
             execute_values(cursor, insert_query, records)
             conn.commit()
@@ -312,12 +309,7 @@ def insert_coin_historical_price_table(conn, file_path):
             INSERT INTO coin_historical_price (symbol, date, open, high, low, close, volume)
             VALUES %s
             ON CONFLICT (symbol, date)
-            DO UPDATE SET
-                open = EXCLUDED.open,
-                high = EXCLUDED.high,
-                low = EXCLUDED.low,
-                close = EXCLUDED.close,
-                volume = EXCLUDED.volume
+            DO NOTHING
             """
             execute_values(cursor, insert_query, extracted_data)
             conn.commit()
@@ -513,9 +505,17 @@ def insert_coin_pair_coint_table(conn, csv_as_tuple):
 def insert_stock_signal_table(conn, csv_as_tuple):
     cursor = conn.cursor()
     insert_query = """
-    INSERT INTO stock_signal (symbol1, symbol2, pvalue, ols_const, ols_coeff, r_squared, key_score, last_updated)
+    INSERT INTO stock_signal (symbol1, symbol2, most_recent_coint_pct, recent_coint_pct, hist_coint_pct, r_squared, ols_constant, ols_coeff, last_updated)
     VALUES %s
-    ON CONFLICT DO NOTHING
+    ON CONFLICT (symbol1, symbol2) 
+    DO UPDATE SET 
+    most_recent_coint_pct = EXCLUDED.most_recent_coint_pct,
+    recent_coint_pct = EXCLUDED.recent_coint_pct,
+    hist_coint_pct = EXCLUDED.hist_coint_pct,
+    r_squared = EXCLUDED.r_squared,
+    ols_constant = EXCLUDED.ols_constant,
+    ols_coeff = EXCLUDED.ols_coeff,
+    last_updated = EXCLUDED.last_updated;
     """
     try:      
         chunk_size = 100
@@ -531,9 +531,18 @@ def insert_stock_signal_table(conn, csv_as_tuple):
 def insert_coin_signal_table(conn, csv_as_tuple):
     cursor = conn.cursor()
     insert_query = """
-    INSERT INTO coin_signal (symbol1, symbol2, pvalue, ols_const, ols_coeff, r_squared, key_score, last_updated)
+    INSERT INTO (symbol1, symbol2, most_recent_coint_pct
+    , recent_coint_pct, hist_coint_pct, r_squared, ols_constant, ols_coeff, last_updated)
     VALUES %s
-    ON CONFLICT DO NOTHING
+    ON CONFLICT (symbol1, symbol2) 
+    DO UPDATE SET 
+    most_recent_coint_pct = EXCLUDED.most_recent_coint_pct,
+    recent_coint_pct = EXCLUDED.recent_coint_pct,
+    hist_coint_pct = EXCLUDED.hist_coint_pct,
+    r_squared = EXCLUDED.r_squared,
+    ols_constant = EXCLUDED.ols_constant,
+    ols_coeff = EXCLUDED.ols_coeff,
+    last_updated = EXCLUDED.last_updated;
     """
     try:      
         chunk_size = 100

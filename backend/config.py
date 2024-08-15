@@ -14,6 +14,7 @@ AVAN_OVERVIEW_CHECKPOINT_FILE = './data/checkpoints/avan_overview_checkpoint.jso
 AVAN_JSON_PATH = './data/avan_raw_json'
 AVAN_DAILY_JSON_PATH = './data/avan_raw_json/avan_data_DAILY'
 AVAN_OVERVIEW_JSON_PATH = './data/avan_raw_json/avan_data_OVERVIEW'
+AVAN_OPTION_JSON_PATH = './data/avan_raw_json/avan_data_OPTION'
 AVAN_SLEEP_TIME = 0.8
 
 #HIST PRICE CSV#
@@ -25,7 +26,7 @@ COIN_PRICE_CSV = './data/raw_csv/raw_csv/binance_agg_data.csv'
 ROLLING_COINT_START_DATE = '2023-01-01'
 ROLLING_COINT_END_DATE = '2024-07-01'
 ROLLING_COINT_WINDOW = 120
-ROLLING_COINT_TOP_N = 3
+ROLLING_COINT_TOP_N = 20
 
 # stock save to csv 
 ROLLING_COINT_STOCK_CHECKPOINT_FILE = './data/checkpoints/rolling_coint_stocks_checkpoint.json'
@@ -37,9 +38,8 @@ COIN_COINT_RESULT_CSV =  f'./data/rolling_coint_result_csv/coins_rolling_coint_r
 
 #SIGNALS#
 # criteria
-HIST_WINDOW_SIG_EVAL = 1000
-RECENT_WINDOW_SIG_EVAL = 120
-RECENT_WINDOW2_SIG_EVAL = 360
+HIST_WINDOW_SIG_EVAL = 720
+RECENT_WINDOW_SIG_EVAL = 120 
 OLS_WINDOW = 120
 
 STOCK_SIGNAL_CSV = './data/test.csv'

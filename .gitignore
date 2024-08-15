@@ -9,6 +9,8 @@
 /venv
 .env
 
+/backend/data
+
 # testing
 /coverage
 
