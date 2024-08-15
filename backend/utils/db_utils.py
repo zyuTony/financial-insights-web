@@ -562,22 +562,22 @@ def update_stock_signal_final_api_data(conn):
     try:
         create_table_query = """
         CREATE TABLE IF NOT EXISTS signal_api_output (
-            symbol1 VARCHAR(50) NOT NULL,
-            market_cap_1 BIGINT,
-            pe_ratio_1 DECIMAL(10, 2),
-            target_price_1 DECIMAL(10, 2),
-            symbol2 VARCHAR(50) NOT NULL,
-            market_cap_2 BIGINT,
-            pe_ratio_2 DECIMAL(10, 2),
-            target_price_2 DECIMAL(10, 2),
-            most_recent_coint_pct NUMERIC,
-            recent_coint_pct NUMERIC,
-            hist_coint_pct NUMERIC,
-            r_squared DECIMAL,
-            ols_constant DECIMAL,
-            ols_coeff DECIMAL,
-            last_updated TIMESTAMPTZ NOT NULL,
-            PRIMARY KEY (symbol1, symbol2)
+        symbol1 VARCHAR(50) NOT NULL,
+        market_cap_1 BIGINT,
+        pe_ratio_1 DECIMAL(10, 2),
+        target_price_1 DECIMAL(10, 2),
+        symbol2 VARCHAR(50) NOT NULL,
+        market_cap_2 BIGINT,
+        pe_ratio_2 DECIMAL(10, 2),
+        target_price_2 DECIMAL(10, 2),
+        most_recent_coint_pct NUMERIC,
+        recent_coint_pct NUMERIC,
+        hist_coint_pct NUMERIC,
+        r_squared DECIMAL,
+        ols_constant DECIMAL,
+        ols_coeff DECIMAL,
+        last_updated TIMESTAMPTZ NOT NULL,
+        UNIQUE(symbol1, symbol2)
         );
         """
         cursor.execute(create_table_query)
@@ -607,7 +607,22 @@ def update_stock_signal_final_api_data(conn):
         JOIN 
             stock_overview c ON a.symbol2 = c.symbol
         ORDER BY 
-            a.most_recent_coint_pct DESC;
+            a.most_recent_coint_pct DESC
+        ON CONFLICT (symbol1, symbol2) 
+        DO UPDATE SET 
+        market_cap_1 = EXCLUDED.market_cap_1,
+        pe_ratio_1 = EXCLUDED.pe_ratio_1,
+        target_price_1 = EXCLUDED.target_price_1,
+        market_cap_2 = EXCLUDED.market_cap_2,
+        pe_ratio_2 = EXCLUDED.pe_ratio_2,
+        target_price_2 = EXCLUDED.target_price_2,
+        most_recent_coint_pct = EXCLUDED.most_recent_coint_pct,
+        recent_coint_pct = EXCLUDED.recent_coint_pct,
+        hist_coint_pct = EXCLUDED.hist_coint_pct,
+        r_squared = EXCLUDED.r_squared,
+        ols_constant = EXCLUDED.ols_constant,
+        ols_coeff = EXCLUDED.ols_coeff,
+        last_updated = EXCLUDED.last_updated;
         """
         cursor.execute(insert_data_query)
         conn.commit()

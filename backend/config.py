@@ -1,5 +1,5 @@
 from datetime import datetime
-timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+from twilio.rest import Client
 
 #BINANCE JSON RETREIVAL#
 BN_CHECKPOINT_FILE = './data/checkpoints/binance_checkpoint.json'
@@ -44,3 +44,24 @@ OLS_WINDOW = 120
 
 STOCK_SIGNAL_CSV = './data/test.csv'
 COIN_SIGNAL_CSV = './data/test.csv'
+
+
+# send text notification
+def outgoing_call(account_sid, auth_token, to_number):
+    client = Client(account_sid, auth_token)
+    call = client.calls.create(
+        url="http://demo.twilio.com/docs/voice.xml",
+        to=to_number,
+        from_='+18449903647')
+
+    print(call.sid)
+        
+def send_sms_message(account_sid, auth_token, to_number, message):
+    client = Client(account_sid, auth_token)
+    message = client.messages.create(
+            body=message,
+            from_='+18449903647',
+            to=to_number)
+
+    print(message.sid)
+        

@@ -100,18 +100,10 @@ insert_stock_signal_table(conn, list(signal_df.itertuples(index=False, name=None
 update_stock_signal_final_api_data(conn)
 conn.close()
 
+ 
 
 
 
 
 
-
-
-
-'''MANUAL FUNCTION'''
-'''
-A. get coint by target
-1. pull price data from DB for target ticker and comparison tickers
-2. Calculate rolling coint for target vs all comparisons
-3. Calculate signal
-'''
+ 
