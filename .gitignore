@@ -10,7 +10,7 @@
 .env
 
 /backend/data
-
+/backend/tonykey.pem
 # testing
 /coverage
 
