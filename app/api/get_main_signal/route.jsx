@@ -3,21 +3,19 @@ import { prisma } from "../../lib/prisma";
 export async function GET() {
   try {
     const signals = await prisma.signal_api_output.findMany({
-      where: {
-        pvalue: { lt: 0.05 },
-      },
       orderBy: {
-        key_score: "desc",
+        most_recent_coint_pct: "desc",
       },
     });
 
     const formattedSignals = signals.map((signal) => ({
       ...signal,
-      pvalue: parseFloat(signal.pvalue),
-      ols_const: parseFloat(signal.ols_const),
+      most_recent_coint_pct: parseFloat(signal.most_recent_coint_pct),
+      recent_coint_pct: parseFloat(signal.recent_coint_pct),
+      hist_coint_pct: parseFloat(signal.hist_coint_pct),
+      ols_constant: parseFloat(signal.ols_constant),
       ols_coeff: parseFloat(signal.ols_coeff),
       r_squared: parseFloat(signal.r_squared),
-      key_score: parseFloat(signal.key_score),
       market_cap_1: signal.market_cap_1 ? parseInt(signal.market_cap_1) : null,
       market_cap_2: signal.market_cap_2 ? parseInt(signal.market_cap_2) : null,
       pe_ratio_1: signal.pe_ratio_1 ? parseFloat(signal.pe_ratio_1) : null,

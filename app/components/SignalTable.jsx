@@ -11,7 +11,7 @@ import "../lib/AgGridComponent.css";
 // const gridHeight = "4000px";
 // const gridWidth = "1200px";
 const gridMinWidth = "800px";
-const gridMaxWidth = "1200px";
+const gridMaxWidth = "2000px";
 const gridPaginationSize = 25;
 const gridPagination = true;
 const paginationPageSizeSelector = [10, 25, 50];
@@ -117,8 +117,24 @@ const SignalTable = ({ data }) => {
       flex: 1,
     },
     {
-      headerName: "P-Value",
-      field: "pvalue",
+      headerName: "Last 14D Coint%",
+      field: "most_recent_coint_pct",
+      valueFormatter: (params) => params.value.toFixed(2),
+      cellStyle: { textAlign: "right" },
+      headerClass: "ag-right-aligned-header",
+      flex: 1,
+    },
+    {
+      headerName: "Last 120D Coint%",
+      field: "recent_coint_pct",
+      valueFormatter: (params) => params.value.toFixed(2),
+      cellStyle: { textAlign: "right" },
+      headerClass: "ag-right-aligned-header",
+      flex: 1,
+    },
+    {
+      headerName: "Last 2 Years Coint%",
+      field: "hist_coint_pct",
       valueFormatter: (params) => params.value.toFixed(2),
       cellStyle: { textAlign: "right" },
       headerClass: "ag-right-aligned-header",
@@ -126,7 +142,7 @@ const SignalTable = ({ data }) => {
     },
     {
       headerName: "OLS Constant",
-      field: "ols_const",
+      field: "ols_constant",
       valueFormatter: (params) => params.value.toFixed(2),
       cellStyle: { textAlign: "right" },
       headerClass: "ag-right-aligned-header",
@@ -150,17 +166,6 @@ const SignalTable = ({ data }) => {
           : "";
       },
       cellStyle: { textAlign: "right" },
-      headerClass: "ag-right-aligned-header",
-      flex: 1.1,
-    },
-    {
-      headerName: "Key Score",
-      field: "key_score",
-      valueFormatter: (params) => params.value.toFixed(2),
-      cellStyle: (params) => {
-        const color = getKeyScoresColor(params.value, minValue, maxValue);
-        return { color: color, textAlign: "right" };
-      },
       headerClass: "ag-right-aligned-header",
       flex: 1.1,
     },

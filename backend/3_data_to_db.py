@@ -96,7 +96,7 @@ insert_stock_signal_table(conn, list(pd.read_csv(STOCK_SIGNAL_CSV).itertuples(in
 --- transform to final output
 '''
 # stock
-get_stock_signal_api_output_table(conn)
+update_stock_signal_final_api_data(conn)
 
 # coin
 

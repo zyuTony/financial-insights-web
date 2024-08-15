@@ -19,7 +19,7 @@ DB_NAME = 'financial_data'
 
 
 '''
-Calculation Refresh Pipeline 
+Calculation Refresh Pipeline 2
 Cadence: AUTOMATIC DAILY
   1. Calculate rolling coint for top pairs by segments
   2. Calculate signal from rolling coint 
@@ -96,6 +96,8 @@ signal_df.to_csv(signal_csv_path, index=False)
 create_stock_signal_table(conn)
 insert_stock_signal_table(conn, list(signal_df.itertuples(index=False, name=None)))
 
+# update api data after calculation
+update_stock_signal_final_api_data(conn)
 conn.close()
 
 

@@ -556,12 +556,12 @@ def insert_coin_signal_table(conn, csv_as_tuple):
         cursor.close()
 
 # Post SQL Operations
-def get_stock_signal_api_output_table(conn):
+def update_stock_signal_final_api_data(conn):
     
     cursor = conn.cursor()
     try:
         create_table_query = """
-        CREATE TABLE signal_api_output (
+        CREATE TABLE IF NOT EXISTS signal_api_output (
             symbol1 VARCHAR(50) NOT NULL,
             market_cap_1 BIGINT,
             pe_ratio_1 DECIMAL(10, 2),
@@ -570,19 +570,20 @@ def get_stock_signal_api_output_table(conn):
             market_cap_2 BIGINT,
             pe_ratio_2 DECIMAL(10, 2),
             target_price_2 DECIMAL(10, 2),
-            key_score DECIMAL,
-            pvalue DECIMAL,
+            most_recent_coint_pct NUMERIC,
+            recent_coint_pct NUMERIC,
+            hist_coint_pct NUMERIC,
             r_squared DECIMAL,
-            ols_const DECIMAL,
+            ols_constant DECIMAL,
             ols_coeff DECIMAL,
             last_updated TIMESTAMPTZ NOT NULL,
-            PRIMARY KEY (symbol1, symbol2, last_updated)
+            PRIMARY KEY (symbol1, symbol2)
         );
         """
         cursor.execute(create_table_query)
 
         insert_data_query = """
-        INSERT INTO signal_api_output (symbol1, market_cap_1, pe_ratio_1, target_price_1, symbol2, market_cap_2, pe_ratio_2, target_price_2, key_score, pvalue, r_squared, ols_const, ols_coeff, last_updated)
+        INSERT INTO signal_api_output (symbol1, market_cap_1, pe_ratio_1, target_price_1, symbol2, market_cap_2, pe_ratio_2, target_price_2, most_recent_coint_pct, recent_coint_pct, hist_coint_pct, r_squared, ols_constant, ols_coeff, last_updated)
         SELECT 
             a.symbol1, 
             b.MarketCapitalization AS market_cap_1, 
@@ -592,10 +593,11 @@ def get_stock_signal_api_output_table(conn):
             c.MarketCapitalization AS market_cap_2, 
             c.PERatio AS pe_ratio_2, 
             c.AnalystTargetPrice AS target_price_2,
-            a.key_score, 
-            a.pvalue,
+            a.most_recent_coint_pct, 
+            a.recent_coint_pct,
+            a.hist_coint_pct,
             a.r_squared, 
-            a.ols_const, 
+            a.ols_constant, 
             a.ols_coeff, 
             a.last_updated
         FROM 
@@ -605,11 +607,11 @@ def get_stock_signal_api_output_table(conn):
         JOIN 
             stock_overview c ON a.symbol2 = c.symbol
         ORDER BY 
-            a.key_score DESC;
+            a.most_recent_coint_pct DESC;
         """
         cursor.execute(insert_data_query)
         conn.commit()
-        print(f"signal_api_output created successfully.")
+        print(f"signal_api_output updated successfully.")
     except Exception as e:
         print(f"Failed to get table: {str(e)}")
         conn.rollback()
