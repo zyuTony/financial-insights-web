@@ -22,8 +22,8 @@ def bn_pull_input_coins_hist_price_json(symbols, bn_api_key, bn_api_secret, star
   # --- Binance
   client = Client(bn_api_key, bn_api_secret)
   # pull data to json
-  if os.path.exists('./data/checkpoints/alt_analysis_data.json'):
-      with open('./data/checkpoints/alt_analysis_data.json', 'r') as file:
+  if os.path.exists(CHECKPOINT_JSON_PATH+'/alt_analysis_data.json'):
+      with open(CHECKPOINT_JSON_PATH+'/alt_analysis_data.json', 'r') as file:
           checkpoint_data = json.load(file)
   else:
       checkpoint_data = []
@@ -32,10 +32,10 @@ def bn_pull_input_coins_hist_price_json(symbols, bn_api_key, bn_api_secret, star
       if coin_id in checkpoint_data:
           print(f"Skipping {coin_id}, already downloaded.")
           continue
-      status = get_ticker_by_interval_name(client, coin_id, interval, interval_name, start_date, end_date, './data/alt_analysis_data')
+      status = get_ticker_by_interval_name(client, coin_id, interval, interval_name, start_date, end_date, DATA_FOLDER+'/alt_analysis_data')
       if status == 1:
           checkpoint_data.append(coin_id)
-          with open('./data/checkpoints/alt_analysis_data.json', 'w') as file:
+          with open(CHECKPOINT_JSON_PATH+'/alt_analysis_data.json', 'w') as file:
               json.dump(checkpoint_data, file, indent=4)
   print('Download completed! :)')
 
@@ -91,7 +91,7 @@ def get_ticker_by_interval_name(client, coin_id, interval, interval_name, start_
 
 def agg_data_to_csv(output_file, coin_list=None, num_of_coins=200):
     if coin_list is None:
-        with open("./data/checkpoint.json", 'r') as file:
+        with open("home/ec2-user/financial_database/backend/checkpoint.json", 'r') as file:
             checkpoint_data = json.load(file)
         coin_ids = checkpoint_data['30MINUTES'][:num_of_coins]
     else:
@@ -100,7 +100,7 @@ def agg_data_to_csv(output_file, coin_list=None, num_of_coins=200):
     # extract data in csv with columns: Date, BTCUSD, ETHUSD, ...
     df_list = []
     for coin_id in tqdm(coin_ids, desc="Processing coins"):
-        with open(f'./data/{coin_id}.json', 'r') as file:
+        with open(f'/TODO/{coin_id}.json', 'r') as file:
             data = json.load(file)
         temp_data = []
         for entry in data:
@@ -187,7 +187,7 @@ def get_all_ticker_by_intervals(client, intervals, start_date, end_date):
     data = client.get_all_tickers()
     coin_ids = [item["symbol"] for item in data if item["symbol"].endswith("USDT")]
 
-    checkpoint_file = '../data/binance_data_2/checkpoint.json'
+    checkpoint_file = '.home/ec2-user/financial_database/backend/binance_data_2/checkpoint.json'
     if os.path.exists(checkpoint_file):
         with open(checkpoint_file, 'r') as file:
             checkpoint_data = json.load(file)
@@ -209,7 +209,7 @@ def get_all_ticker_by_intervals(client, intervals, start_date, end_date):
                 try:
                     # Get data and save to JSON
                     ticker_data = client.get_historical_klines(coin_id, Client.KLINE_INTERVAL_30MINUTE, start_date, end_date)
-                    with open(f'./data/{coin_id}.json', 'w') as file:
+                    with open(f'/TODO/{coin_id}.json', 'w') as file:
                         json.dump(ticker_data, file, indent=4)
                         print(f'Downloaded {coin_id}')
                     

@@ -39,15 +39,12 @@ def get_unix_timestamp(date_str):
     return int(time.mktime(datetime.strptime(date_str, "%Y-%m-%d").timetuple()))
 
 '''Get top coin by mc'''
-# symbols_ranking = []
-# for page_num in range(1, 6):
-#     symbols_ranking.extend(pull_coin_list_ranking(gc_api_key, page_num))
+symbols_ranking = []
+for page_num in range(1, 6):
+    symbols_ranking.extend(pull_coin_list_ranking(gc_api_key, page_num))
 
-# with open('./data/gecko_raw_data/mapping/top_symbol_by_mc.json', 'w') as file:
-#     json.dump(symbols_ranking, file, indent=4)
-
-with open('./data/gecko_raw_data/mapping/top_symbol_by_mc.json', 'r') as file:
-    symbols_ranking = json.load(file)
+with open(GECKO_JSON_PATH+'/mapping/top_symbol_by_mc.json', 'w') as file:
+    json.dump(symbols_ranking, file, indent=4)
  
 ids = [item["id"] for item in symbols_ranking]
 symbols = [item["symbol"].upper() for item in symbols_ranking]
@@ -59,15 +56,11 @@ unix_start = get_unix_timestamp(start_date)
 unix_end = get_unix_timestamp(end_date)
 
 '''DOWNLOAD DATA'''
-max_days = 180
-max_seconds = max_days * 24 * 60 * 60
-
 for id, symbol in zip(ids, symbols):
     current_start = unix_start
     all_data = []
-    
     while current_start < unix_end:
-        current_end = min(current_start + max_seconds, unix_end)
+        current_end = min(current_start + DAYS_PER_API_LIMIT * 24 * 60 * 60, unix_end)
         
         try:
             url = f"https://pro-api.coingecko.com/api/v3/coins/{id}/ohlc/range?vs_currency=usd&from={current_start}&to={current_end}&interval=daily"
@@ -92,7 +85,7 @@ for id, symbol in zip(ids, symbols):
             break
     
     # Save all collected data to one JSON file per coin
-    with open(f'./data/gecko_raw_data/daily/{symbol}.json', 'w') as file:
+    with open(GECKO_DAILY_JSON_PATH+f'/{symbol}.json', 'w') as file:
         json.dump(all_data, file, indent=4)
     print(f"Saved full data for {symbol} to {symbol}.json")
 
@@ -128,10 +121,9 @@ finally:
     cursor.close()
 
 '''INSERT TO SQL DATABASE'''
-alt_json_folder = './data/gecko_raw_data/daily'
-for filename in os.listdir(alt_json_folder):
+for filename in os.listdir(GECKO_DAILY_JSON_PATH):
     if filename.endswith('.json'):
-        file_path = os.path.join(alt_json_folder, filename)
+        file_path = os.path.join(GECKO_DAILY_JSON_PATH, filename)
         cursor = conn.cursor()
         try:
             with open(file_path, 'r') as file:
@@ -196,20 +188,19 @@ def pull_coin_mapping_gecko(api_key):
 def fill_bn_missing_with_gecko():
     '''Get Id Symbol Mapping'''
     data = pull_coin_mapping_gecko(gc_api_key)
-    with open('./data/gecko_raw_data/mapping/symbol_map.json', 'w') as file:
+    with open(GECKO_JSON_PATH+'/mapping/symbol_map.json', 'w') as file:
         json.dump(data, file, indent=4)
 
     '''check what else to download'''
     # Find current Binance data and Top 200 CMC coins. Download what we don't have.
     
-    with open('./data/gecko_raw_data/mapping/symbol_map.json', 'r') as file:
+    with open(GECKO_JSON_PATH+'/mapping/symbol_map.json', 'r') as file:
         mapping = json.load(file)
 
     symbol_to_id = {item['symbol'].upper(): item['id'] for item in mapping}
     id_to_symbol = {item['id']: item['symbol'].upper() for item in mapping}
 
-    bn_checkpoint = './data/checkpoints/binance_checkpoint.json'
-    with open(bn_checkpoint, 'r') as file:
+    with open(BN_CHECKPOINT_FILE, 'r') as file:
         bn_downloaded_symbols = json.load(file)
 
     bn_downloaded_symbols = [symbol.replace('USDT', '') for symbol in bn_downloaded_symbols]
@@ -235,7 +226,8 @@ def fill_bn_missing_with_gecko():
             response = requests.get(url, headers=headers)
             data = response.json()
             symbol = id_to_symbol[id]
-            with open(f'./data/gecko_raw_data/{symbol}.json', 'w') as file:
+            
+            with open(GECKO_DAILY_JSON_PATH+f'/{symbol}.json', 'w') as file:
                 json.dump(data, file, indent=4)
             print(f'downloaded {symbol}.json')
         except (Exception) as e:
@@ -251,10 +243,9 @@ def fill_bn_missing_with_gecko():
 
     conn = connect_to_db(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)
         
-    alt_json_folder = './data/gecko_raw_data'
-    for filename in os.listdir(alt_json_folder):
+    for filename in os.listdir(GECKO_DAILY_JSON_PATH):
         if filename.endswith('.json'):
-            file_path = os.path.join(alt_json_folder, filename)
+            file_path = os.path.join(GECKO_DAILY_JSON_PATH, filename)
             cursor = conn.cursor()
             try:
                 with open(file_path, 'r') as file:

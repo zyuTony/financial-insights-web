@@ -27,10 +27,10 @@ Cadence: AUTOMATIC DAILY
   4. Insert signal to DB
 '''
 # get sectors and top tickers 
-top_n_tickers_by_sectors = 2
-checkpoint_file_path = './data/checkpoints/calc_pipeline.json'
-coint_csv_path = './data/rolling_coint_result_csv/calc_pipeline_coint_by_segment.csv'
-signal_csv_path = './data/calc_pipeline_signal_by_segment.csv'
+top_n_tickers_by_sectors = 30
+checkpoint_file_path = CHECKPOINT_JSON_PATH+'/calc_pipeline.json'
+coint_csv_path = COINT_CSV_PATH+'/calc_pipeline_coint_by_segment.csv'
+signal_csv_path = SIGNAL_CSV_PATH+'/calc_pipeline_signal_by_segment.csv'
 
 conn = connect_to_db(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)
 query = f"""

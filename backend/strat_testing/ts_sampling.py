@@ -33,7 +33,7 @@ def save_samples_to_csv(samples):
         os.makedirs('samples')
         
     for i, sample in enumerate(samples):
-        sample.to_csv(f'../data/sample_{i+1}.csv', index=False)
+        sample.to_csv(f'.home/ec2-user/financial_database/backend/sample_{i+1}.csv', index=False)
 
 # Example usage
 file_path = './btc.csv'

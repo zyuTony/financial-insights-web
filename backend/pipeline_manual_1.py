@@ -26,9 +26,9 @@ A. get coint by target
 3. Calculate signal
 '''
 # get tickers price
-checkpoint_file_path = './data/checkpoints/manual_pipeline.json'
-coint_csv_path = './data/rolling_coint_result_csv/manual_pipeline_coint.csv'
-signal_csv_path = './data/manual_pipeline_signal.csv'
+checkpoint_file_path = CHECKPOINT_JSON_PATH+'/manual_pipeline.json'
+coint_csv_path = COINT_CSV_PATH+'/manual_pipeline_coint.csv'
+signal_csv_path = SIGNAL_CSV_PATH+'/manual_pipeline_signal.csv'
 target_symbol = 'AAPL'
 sector = 'related to above symbol'
 conn = connect_to_db(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)
@@ -39,6 +39,7 @@ join stock_overview b
 on a.symbol=b.symbol
 where sector = {sector}
 and date >= '2022-01-01'
+order by marketcapitalization desc
 """
 df = pd.read_sql(query, conn)
 conn.close()
@@ -49,6 +50,9 @@ price_df.reset_index(inplace=True)
 
 # get coint
 coint_df = save_target_symbol_rolling_coint(target_symbol, price_df, None, checkpoint_file_path, coint_csv_path)
+# option for getting all possible pairs for top 20 symbols
+# top_n_symbols = 20
+# coint_df = save_multi_pairs_rolling_coint(price_df, top_n_symbols, checkpoint_file_path, coint_csv_path)
 
 # insert coint to db
 coint_df = pd.read_csv(coint_csv_path)

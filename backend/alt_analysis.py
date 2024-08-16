@@ -88,7 +88,7 @@ finally:
     cursor.close()
 
 
-alt_json_folder = './data/alt_analysis_data/1DAY'
+alt_json_folder = DATA_FOLDER+'/alt_analysis_data/1DAY'
 for filename in os.listdir(alt_json_folder):
     if filename.endswith('.json'):
         file_path = os.path.join(alt_json_folder, filename)

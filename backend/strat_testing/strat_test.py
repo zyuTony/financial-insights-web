@@ -3,7 +3,7 @@ import numpy as np
 from utils.strat_utils import *
 import json 
 
-file = '../data/SPY_DAILY_data.csv'
+file = '.home/ec2-user/financial_database/backend/SPY_DAILY_data.csv'
 
 # Load the historical coin data
 df = pd.read_csv(file, parse_dates=['date'])

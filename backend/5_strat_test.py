@@ -29,7 +29,7 @@ class SpreadZscore(Strategy):
             if cross(self.data.Close, self.rolling_mean):
                 trade.close()
  
-df_test = pd.read_csv('./data/test_filtered.csv')
+df_test = pd.read_csv(DATA_FOLDER+'/test_filtered.csv')
 results = pd.DataFrame()
 for column in df_test.columns[1:]:
     df = pd.DataFrame()
@@ -41,4 +41,4 @@ for column in df_test.columns[1:]:
     print(f'{column}')
     print(stats)
 
-results.to_csv('./data/testtest.csv')
+results.to_csv(DATA_FOLDER+'/testtest.csv')

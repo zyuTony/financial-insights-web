@@ -267,8 +267,8 @@ def insert_stock_historical_price_table(conn, file_path):
                     float(metrics["1. open"]),
                     float(metrics["2. high"]),
                     float(metrics["3. low"]),
-                    float(metrics["4. close"]),
-                    int(metrics["5. volume"])
+                    float(metrics["5. adjusted close"]),
+                    int(metrics["6. volume"])
                 )
                 records.append(record)
             

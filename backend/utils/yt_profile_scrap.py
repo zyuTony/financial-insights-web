@@ -12,7 +12,7 @@ from utlis.tiktok_utlis import remove_emojis, convert_views
 profile_name='jrny'
 
 # Load the HTML content from a local file
-with open(f'./data/{profile_name}.html', 'r', encoding='utf-8') as file:
+with open(DATA_FOLDER+f'/{profile_name}.html', 'r', encoding='utf-8') as file:
     html_content = file.read()
 
 # load content into bs4
@@ -52,6 +52,6 @@ for container in video_containers:
 
 # save to csv
 df = pd.DataFrame(videos)
-df.to_csv(f"./data/{profile_name}.csv", index=False)
+df.to_csv(f"home/ec2-user/financial_database/backend/{profile_name}.csv", index=False)
 
 print(f"Data saved to {profile_name}.csv")
