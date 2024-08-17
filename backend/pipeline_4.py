@@ -34,14 +34,14 @@ signal_csv_path = SIGNAL_CSV_PATH+'/calc_pipeline_signal_by_segment.csv'
 
 conn = connect_to_db(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)
 query = f"""
-WITH RankedStocks AS (
+WITH ranked_stocks AS (
 SELECT symbol, sector, marketcapitalization,
 ROW_NUMBER() OVER (PARTITION BY sector ORDER BY marketcapitalization DESC) AS rn
 FROM stock_overview
 WHERE marketcapitalization IS NOT NULL),
 top_stocks_by_sector as (
 SELECT symbol, sector, marketcapitalization
-FROM RankedStocks
+FROM ranked_stocks
 WHERE rn <= {top_n_tickers_by_sectors}
 ORDER BY sector, marketcapitalization DESC)
 
@@ -49,7 +49,7 @@ select b.sector, a.*
 from stock_historical_price a 
 join top_stocks_by_sector b 
 on a.symbol=b.symbol
-where date >= '2022-01-01'
+where date >= '2023-01-01'
 order by marketcapitalization desc, date
 """
 df = pd.read_sql(query, conn)
@@ -81,7 +81,7 @@ coint_df.columns = coint_df.columns.str.replace('_p_val$', '', regex=True)
 coint_df_melted = pd.melt(coint_df, id_vars=['date'], var_name='pair_name', value_name='value')
 coint_df_melted[['symbol1', 'symbol2']] = coint_df_melted['pair_name'].str.split('_', expand=True)
 coint_df_melted = coint_df_melted.drop(columns=['pair_name'])
-coint_df_melted['window_length'] = 120
+coint_df_melted['window_length'] = ROLLING_COINT_WINDOW
 coint_df_melted = coint_df_melted[['date', 'window_length', 'symbol1', 'symbol2', 'value']]
 
 conn = connect_to_db(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)

@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 import os
 import json
 
-
 load_dotenv(override=True)
 bn_api_key = os.getenv('BINANCE_API')  
 bn_api_secret = os.getenv('BINANCE_SECRET')  

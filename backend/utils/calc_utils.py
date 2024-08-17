@@ -238,9 +238,9 @@ def get_signal(rolling_coint_df, hist_price_df):
     ols_df = get_multi_pairs_ols_coeff(hist_price_df, signal_df['name'])
 
     result = pd.concat([signal_df.reset_index(drop=True), ols_df.reset_index(drop=True)], axis=1)
-
+    result['window_length'] = ROLLING_COINT_WINDOW
     # reorder the data
-    return result[['name1', 'name2', 'most_recent_coint_pct', 'recent_coint_pct', 'hist_coint_pct', 'r_squared', 'ols_constant', 'ols_coeff', 'last_updated']]
+    return result[['name1', 'name2', 'window_length', 'most_recent_coint_pct', 'recent_coint_pct', 'hist_coint_pct', 'r_squared', 'ols_constant', 'ols_coeff', 'last_updated']]
  
 
 #### NOT IN USE $$$#####

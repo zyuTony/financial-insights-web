@@ -4,9 +4,12 @@ from config import *
 
 # List of folders you want to clean up
 directories_to_clean   = [
-    AVAN_DAILY_JSON_PATH,
-    AVAN_OVERVIEW_JSON_PATH,
-    CHECKPOINT_JSON_PATH
+    AVAN_CHECKPOINT_FILE,
+    ROLLING_COINT_STOCK_CHECKPOINT_FILE,
+    ROLLING_COINT_COIN_CHECKPOINT_FILE,
+    CHECKPOINT_JSON_PATH + '/avan_checkpoint.json',
+    CHECKPOINT_JSON_PATH + '/coin_calc_pipeline.json',
+    CHECKPOINT_JSON_PATH + '/calc_pipeline.json'
     ]
 
 def clean_directory_contents(directory_path):
