@@ -22,7 +22,7 @@ Cadence: AUTOMATIC DAILY
   4. Insert signal to DB
 '''
 # get tickers price
-top_n_tickers_by_mc = 50
+top_n_tickers_by_mc = 70
 checkpoint_file_path = CHECKPOINT_JSON_PATH+'/coin_calc_pipeline.json'
 coint_csv_path = COINT_CSV_PATH+'/coin_calc_pipeline_coint.csv'
 signal_csv_path = SIGNAL_CSV_PATH+'/coin_calc_pipeline_signal.csv'
@@ -50,8 +50,9 @@ price_df = df.pivot(index='date', columns='symbol', values='close')
 price_df.fillna(-1, inplace=True)
 price_df.reset_index(inplace=True)
 
-# get coint
+# # get coint
 coint_df = save_multi_pairs_rolling_coint(price_df, None, checkpoint_file_path, coint_csv_path)
+# coint_df = pd.read_csv(coint_csv_path) # for debug 
 
 # insert coint to db
 coint_df.columns = coint_df.columns.str.replace('_p_val$', '', regex=True)

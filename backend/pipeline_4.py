@@ -4,7 +4,10 @@ from utils.avan_utils import *
 from utils.calc_utils import *
 from dotenv import load_dotenv
 import os
-import json
+import warnings
+
+warnings.filterwarnings("ignore", category=UserWarning, message="pandas only supports SQLAlchemy connectable")
+
 
 load_dotenv(override=True)
 bn_api_key = os.getenv('BINANCE_API')  

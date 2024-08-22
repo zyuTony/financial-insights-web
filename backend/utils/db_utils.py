@@ -5,7 +5,6 @@ from psycopg2 import OperationalError
 from psycopg2.extras import execute_values
 from datetime import datetime 
 import json
-from tqdm import tqdm 
 
 def connect_to_db(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD):
     try:
@@ -374,7 +373,6 @@ def insert_coin_historical_price_table(conn, file_path):
             """
             execute_values(cursor, insert_query, extracted_data)
             conn.commit()
-            print(f'Inserted {symbol} historical price')
     except Exception as e:
         print(f"Failed to insert data from {file_path}: {e}")
         conn.rollback()
@@ -589,7 +587,6 @@ def insert_coin_overview_table(conn, file_path):
                 """
                 cursor.execute(insert_query, (record,))
                 conn.commit()
-                print(f"{entry.get('symbol')} overview inserted")
             except Exception as record_error:
                 print(f"Failed to insert record for symbol: {entry.get('symbol')} - Error: {record_error}")
                 conn.rollback()
@@ -608,7 +605,7 @@ def insert_stock_pair_coint_table(conn, csv_as_tuple):
     """
     try:      
         chunk_size = 100
-        for i in tqdm(range(0, len(csv_as_tuple), chunk_size), desc="Inserting data"):
+        for i in range(0, len(csv_as_tuple), chunk_size):
             execute_values(cursor, insert_query, csv_as_tuple[i:i+chunk_size])
         conn.commit()
     except Exception as e:
@@ -626,7 +623,7 @@ def insert_coin_pair_coint_table(conn, csv_as_tuple):
     """
     try:      
         chunk_size = 100
-        for i in tqdm(range(0, len(csv_as_tuple), chunk_size), desc="Inserting data"):
+        for i in range(0, len(csv_as_tuple), chunk_size):
             execute_values(cursor, insert_query, csv_as_tuple[i:i+chunk_size])
         conn.commit()
     except Exception as e:
@@ -652,7 +649,7 @@ def insert_stock_signal_table(conn, csv_as_tuple):
     """
     try:      
         chunk_size = 100
-        for i in tqdm(range(0, len(csv_as_tuple), chunk_size), desc="Inserting data"):
+        for i in range(0, len(csv_as_tuple), chunk_size):
             execute_values(cursor, insert_query, csv_as_tuple[i:i+chunk_size])
         conn.commit()
     except Exception as e:
@@ -678,7 +675,7 @@ def insert_coin_signal_table(conn, csv_as_tuple):
     """
     try:      
         chunk_size = 100
-        for i in tqdm(range(0, len(csv_as_tuple), chunk_size), desc="Inserting data"):
+        for i in range(0, len(csv_as_tuple), chunk_size):
             execute_values(cursor, insert_query, csv_as_tuple[i:i+chunk_size])
         conn.commit()
     except Exception as e:

@@ -30,21 +30,24 @@ interval = 'DAILY'
 with open(SEC_STOCK_TICKERS, 'r') as file:
         data = json.load(file)
 tickers = []
+print(f'---- Begin downloading Top {top_n_stocks} stocks overviews')
 for key, value in data.items():
    tickers.append(value["ticker"])
 avan_pull_stocks_overview_json(avan_api_key, tickers[:top_n_stocks])
 
 # insert to db
 conn = connect_to_db(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)
+print('---- Download completed! :)')  
+print(f'---- Begin stock data insertion to SQL')
 create_stock_overview_table(conn)
 for filename in os.listdir(AVAN_OVERVIEW_JSON_PATH):
     if filename.endswith('.json'):
         file_path = os.path.join(AVAN_OVERVIEW_JSON_PATH, filename)
         try:
-            insert_stock_overview_table(conn, file_path)
-            print(f'Inserted {filename} overview')
+            insert_stock_overview_table(conn, file_path)  
         except Exception as e:
             print(f'Error processing {filename}: {e}')
             continue 
+        # print(f'Inserted {filename} overview')
 conn.close()
- 
+print(f'---- Insertion complete!')

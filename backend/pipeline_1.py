@@ -29,12 +29,15 @@ interval = 'DAILY'
 with open(SEC_STOCK_TICKERS, 'r') as file:
         data = json.load(file)
 tickers = []
+print(f'---- Begin downloading Top {top_n_stocks} stocks data')
 for key, value in data.items():
    tickers.append(value["ticker"])
-avan_pull_stocks_hist_price_to_json(avan_api_key, interval, tickers[:top_n_stocks])
+avan_pull_stocks_hist_price_to_json(avan_api_key, interval, tickers[:top_n_stocks]) 
 
 # insert to db
 conn = connect_to_db(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)
+print('---- Download completed! :)')  
+print(f'---- Begin stock data insertion to SQL')
 create_stock_historical_price_table(conn)
 for filename in os.listdir(AVAN_DAILY_JSON_PATH):
     if filename.endswith('.json'):
@@ -44,7 +47,8 @@ for filename in os.listdir(AVAN_DAILY_JSON_PATH):
         except Exception as e:
             print(f'Error processing {filename}: {e}')
             continue
-    print(f'Inserted {filename} historical price')
+    # print(f'Inserted {filename} historical price')
 conn.close()
+print(f'---- Insertion complete!')
 
  

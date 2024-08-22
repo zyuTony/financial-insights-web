@@ -68,7 +68,7 @@ def save_multi_pairs_rolling_coint(price_df, top_n_data, checkpoint_file, result
     for i in range(price_df.shape[1]):
         name1 = price_df.columns[i]
         data1 = price_df.iloc[:, i]
-        print(f'--- {name1}')
+        print(f'--- {name1} - getting all possible pairs')
         for j in range(i+1, price_df.shape[1]):
             # save progress
             name2 = price_df.columns[j]      
@@ -78,7 +78,7 @@ def save_multi_pairs_rolling_coint(price_df, top_n_data, checkpoint_file, result
             # try rolling cointegration
             try:
                 data2 = price_df.iloc[:, j]
-                print(f'Working on {name1} X {name2}')
+                # print(f'Working on {name1} X {name2}')
                 res = rolling_cointegration(name1, data1, name2, data2, ROLLING_COINT_WINDOW)
                 results = pd.concat([results, res], axis=1)
                 checkpoint_data.append([name1, name2])
@@ -135,7 +135,7 @@ def save_target_symbol_rolling_coint(target_symbol, price_df, top_n_data, checkp
         # try rolling cointegration
         try:
             data2 = price_df.iloc[:, i]
-            print(f'Working on {target_symbol} X {name2}')
+            # print(f'Working on {target_symbol} X {name2}')
             res = rolling_cointegration(target_symbol, target_data, name2, data2, ROLLING_COINT_WINDOW)
             results = pd.concat([results, res], axis=1)
             checkpoint_data.append([target_symbol, name2])

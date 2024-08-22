@@ -1,8 +1,6 @@
-from requests import Request, Session
 import json
 import pandas as pd
-from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
-import datetime
+from requests.exceptions import ConnectionError 
 from statsmodels.tsa.stattools import coint
 import statsmodels.api as sm
 import os
@@ -12,7 +10,7 @@ from tqdm import tqdm
 
 from binance.client import Client
 from utils.cmc_utils import *
-import config
+from config import *
 
 
 def bn_pull_input_coins_hist_price_json(symbols, bn_api_key, bn_api_secret, start_date, end_date, interval, interval_name):

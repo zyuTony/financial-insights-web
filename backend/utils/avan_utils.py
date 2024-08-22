@@ -28,7 +28,7 @@ def avan_pull_stock_data(interval, ticker, avan_api_key, outputsize):
         data = response.json()
         with open(json_file_path, 'w') as file:
             json.dump(data, file, indent=4)
-        print(f"{ticker} saved to json")
+        # print(f"{ticker} saved to json")
         return 1 
     else:
         print(f"Error fetching {ticker}: {response.status_code}")
@@ -43,7 +43,7 @@ def avan_pull_stock_overview(ticker, avan_api_key):
         data = response.json()
         with open(json_file_path, 'w') as file:
             json.dump(data, file, indent=4)
-        print(f"{ticker} saved to json")
+        # print(f"{ticker} saved to json")
         return 1 
     else:
         print(f"Error fetching {ticker}: {response.status_code}")
@@ -58,7 +58,7 @@ def avan_pull_option(ticker, avan_api_key, option_type='HISTORICAL'):
         data = response.json()
         with open(json_file_path, 'w') as file:
             json.dump(data, file, indent=4)
-        print(f"{ticker} saved to json")
+        # print(f"{ticker} saved to json")
         return 1 
     else:
         print(f"Error fetching {ticker}: {response.status_code}")
@@ -80,7 +80,6 @@ def avan_pull_stocks_hist_price_to_json(avan_api_key, interval, tickers, data_le
             checkpoint_data.append(ticker)
             with open(AVAN_CHECKPOINT_FILE, 'w') as file:
                 json.dump(checkpoint_data, file, indent=4)
-    print('Download completed! :)')  
 
 
 def avan_pull_stocks_overview_json(avan_api_key, tickers):
