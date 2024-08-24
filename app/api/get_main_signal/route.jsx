@@ -2,7 +2,7 @@ import { prisma } from "../../lib/prisma";
 
 export async function GET() {
   try {
-    const signals = await prisma.signal_api_output.findMany({
+    const signals = await prisma.stock_signal_api_output.findMany({
       orderBy: {
         most_recent_coint_pct: "desc",
       },
