@@ -119,10 +119,9 @@ model stock_overview {
   exdividenddate             DateTime? @db.Date
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model coin_overview {
-  symbol                           String?   @db.VarChar(10)
-  name                             String?   @db.VarChar(255)
+  symbol                           String    @db.VarChar(10)
+  name                             String    @db.VarChar(255)
   current_price                    Decimal?  @db.Decimal(20, 8)
   market_cap                       BigInt?
   market_cap_rank                  Int?
@@ -143,8 +142,8 @@ model coin_overview {
   atl_date                         DateTime? @db.Timestamp(6)
   last_updated                     DateTime? @db.Timestamp(6)
 
+  @@id([symbol, name])
   @@unique([symbol, name])
-  @@ignore
 }
 
 model coin_signal {
@@ -162,12 +161,11 @@ model coin_signal {
   @@unique([symbol1, symbol2, window_length])
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model coin_signal_api_output {
   symbol1               String   @db.VarChar(50)
-  market_cap_1          BigInt?
+  market_cap_1          BigInt
   symbol2               String   @db.VarChar(50)
-  market_cap_2          BigInt?
+  market_cap_2          BigInt
   most_recent_coint_pct Decimal? @db.Decimal
   recent_coint_pct      Decimal? @db.Decimal
   hist_coint_pct        Decimal? @db.Decimal
@@ -176,8 +174,8 @@ model coin_signal_api_output {
   ols_coeff             Decimal? @db.Decimal
   last_updated          DateTime @db.Timestamptz(6)
 
+  @@id([symbol1, market_cap_1, symbol2, market_cap_2])
   @@unique([symbol1, market_cap_1, symbol2, market_cap_2])
-  @@ignore
 }
 
 model ib_latest_trades {

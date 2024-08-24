@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export default function NavMenu() {
-  const dropdownWidth = "w-48";
+  const dropdownWidth = "w-60";
   const dropdownItemHoverColor = "hover:bg-gray-100";
   const dropdownItemPadding = "pl-1 pr-6 py-1";
   const dropdownItemFontWeight = "font-semibold";
@@ -38,13 +38,23 @@ export default function NavMenu() {
           >
             <div className="py-2">
               <Link
-                href="/trading_signals/pair_cointegration"
+                href="/trading_signals/stock_pair_cointegration"
                 className="block px-4 py-2 text-left"
               >
                 <span
                   className={`${dropdownItemHoverColor} ${dropdownItemPadding} ${dropdownItemFontWeight} ${dropdownItemFontSize} rounded`}
                 >
-                  Pairs Cointegration
+                  Pairs Cointegration - Stock
+                </span>
+              </Link>
+              <Link
+                href="/trading_signals/crypto_pair_cointegration"
+                className="block px-4 py-2 text-left"
+              >
+                <span
+                  className={`${dropdownItemHoverColor} ${dropdownItemPadding} ${dropdownItemFontWeight} ${dropdownItemFontSize} rounded`}
+                >
+                  Pairs Cointegration - Crypto
                 </span>
               </Link>
               <Link href="/todo" className="block px-4 py-2 text-left">

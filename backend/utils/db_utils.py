@@ -192,7 +192,8 @@ def create_coin_overview_table(conn):
             atl DECIMAL(20, 8),  
             atl_date TIMESTAMP,
             last_updated TIMESTAMP,
-            UNIQUE (symbol, name)
+            UNIQUE (symbol, name),
+            PRIMARY KEY (symbol, name)
         );
         """
         cursor.execute(create_table_query)
@@ -706,7 +707,7 @@ def update_stock_signal_final_api_data(conn):
         ols_constant DECIMAL,
         ols_coeff DECIMAL,
         last_updated TIMESTAMPTZ NOT NULL,
-        UNIQUE(symbol1, symbol2)
+        UNIQUE (symbol1, symbol2)
         );
         """
         cursor.execute(create_table_query)
@@ -779,7 +780,8 @@ def update_coin_signal_final_api_data(conn):
         ols_constant DECIMAL,
         ols_coeff DECIMAL,
         last_updated TIMESTAMPTZ NOT NULL,
-        UNIQUE(symbol1, market_cap_1, symbol2, market_cap_2)
+        UNIQUE (symbol1, market_cap_1, symbol2, market_cap_2),
+        PRIMARY KEY(symbol1, symbol2)
         );
         """
         cursor.execute(create_table_query)

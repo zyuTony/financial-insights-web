@@ -1,4 +1,3 @@
-// components/SignalTable.jsx
 "use client";
 import Link from "next/link";
 import React from "react";
@@ -82,20 +81,6 @@ const columnDefs = [
     flex: 1,
   },
   {
-    headerName: "PE ratio 1",
-    field: "pe_ratio_1",
-    valueFormatter: (params) =>
-      params.value != null ? params.value.toFixed(2) : "N/A",
-    cellStyle: {
-      textAlign: "right",
-      color: columnsConfig.colorNormal,
-      fontWeight: columnsConfig.fontWeightNormal,
-    },
-    headerClass: "ag-right-aligned-header",
-    maxWidth: 120,
-    flex: 1,
-  },
-  {
     headerName: "Symbol 2",
     field: "symbol2",
     cellStyle: {
@@ -120,20 +105,6 @@ const columnDefs = [
     headerName: "Market Cap 2",
     field: "market_cap_2",
     valueFormatter: (params) => mcFormater(params.value),
-    cellStyle: {
-      textAlign: "right",
-      color: columnsConfig.colorNormal,
-      fontWeight: columnsConfig.fontWeightNormal,
-    },
-    headerClass: "ag-right-aligned-header",
-    maxWidth: 120,
-    flex: 1,
-  },
-  {
-    headerName: "PE ratio 2",
-    field: "pe_ratio_2",
-    valueFormatter: (params) =>
-      params.value != null ? params.value.toFixed(2) : "N/A",
     cellStyle: {
       textAlign: "right",
       color: columnsConfig.colorNormal,
@@ -266,7 +237,7 @@ const columnDefs = [
   },
 ];
 
-const SignalTable = ({ data }) => {
+const CryptoPairCointTable = ({ data }) => {
   return (
     <div
       className="w-full ag-theme-alpine"
@@ -292,4 +263,4 @@ const SignalTable = ({ data }) => {
   );
 };
 
-export default SignalTable;
+export default CryptoPairCointTable;
