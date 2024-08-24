@@ -46,6 +46,7 @@ order by market_cap desc, date
 df = pd.read_sql(query, conn)
 conn.close()
 
+df = df.drop_duplicates(subset=['date', 'symbol'])
 price_df = df.pivot(index='date', columns='symbol', values='close')
 price_df.fillna(-1, inplace=True)
 price_df.reset_index(inplace=True)

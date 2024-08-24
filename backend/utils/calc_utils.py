@@ -224,9 +224,17 @@ def get_multi_pairs_ols_coeff(hist_price_df, col_name):
     print('---Begin getting ols for pairs')
     for pair in tqdm(col_name):
         split_string = pair.split('_')
-        ols = get_ols_coeff(split_string[0], split_string[1], hist_price_df.loc[:, split_string[0]], hist_price_df.loc[:, split_string[1]])
+        symbol1 = split_string[0]
+        symbol2 = split_string[1]
+        
+        if symbol1 not in hist_price_df.columns or symbol2 not in hist_price_df.columns:
+            print(f"Skipping pair {pair}: Columns {symbol1} or {symbol2} are missing in hist_price_df")
+            continue
+        
+        ols = get_ols_coeff(symbol1, symbol2, hist_price_df.loc[:, symbol1], hist_price_df.loc[:, symbol2])
         ols['last_updated'] = last_updated
         result.append(ols)
+        
     return pd.DataFrame(result)
 
 

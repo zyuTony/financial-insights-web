@@ -380,7 +380,6 @@ def insert_coin_historical_price_table(conn, file_path):
         cursor.close()
 
 def insert_stock_overview_table(conn, file_path):
-    # Error processing ATEYY.json: 'Symbol' indicate the data available in tickerlist but was not in avan overview data
     cursor = conn.cursor()
     try:
         with open(file_path, 'r') as file:
