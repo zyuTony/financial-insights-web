@@ -23,7 +23,7 @@ const mcFormater = (number) => {
 
 const gridConfig = {
   minWidth: "800px",
-  maxWidth: "1700px",
+  maxWidth: "1450px",
   paginationSize: 25,
   pagination: true,
   paginationPageSizeSelector: [10, 25, 50],
@@ -133,7 +133,7 @@ const columnDefs = [
     headerClass: "ag-right-aligned-header",
     minWidth: 100,
     maxWidth: 180,
-    flex: 1,
+    flex: 1.3,
   },
   {
     headerName: "% Coint (Past 60 Days)",
@@ -154,7 +154,7 @@ const columnDefs = [
     headerClass: "ag-right-aligned-header",
     minWidth: 100,
     maxWidth: 180,
-    flex: 1,
+    flex: 1.3,
   },
   {
     headerName: "% Coint (Past 1 Year)",
@@ -175,7 +175,7 @@ const columnDefs = [
     headerClass: "ag-right-aligned-header",
     minWidth: 100,
     maxWidth: 180,
-    flex: 1,
+    flex: 1.3,
   },
   {
     headerName: "OLS Coefficient",
@@ -188,7 +188,7 @@ const columnDefs = [
     },
     headerClass: "ag-right-aligned-header",
     minWidth: 100,
-    maxWidth: 130,
+    maxWidth: 140,
     flex: 1,
   },
   {

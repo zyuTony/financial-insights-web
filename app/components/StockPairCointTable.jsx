@@ -217,7 +217,7 @@ const columnDefs = [
     },
     headerClass: "ag-right-aligned-header",
     minWidth: 100,
-    maxWidth: 130,
+    maxWidth: 140,
     flex: 1,
   },
   {
