@@ -13,6 +13,8 @@
 /venv
 /backend/data
 __pycache__/
+/backend/__pycache__/
+/backend/sql_query/
 
 # next.js
 /.next/
