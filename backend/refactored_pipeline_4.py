@@ -1,5 +1,6 @@
 from config import *
-from utils.refactor import *
+from utils.refactor_calc import *
+from utils.refactor_db import *
 from dotenv import load_dotenv
 import os
 import warnings
@@ -33,7 +34,7 @@ signal_csv_path = SIGNAL_CSV_PATH+'/calc_pipeline_signal_by_segment.csv'
 
 db = stock_coint_by_segment_db_communicator(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)
 db.connect()
-df = db.fetch_input_data(top_n_tickers_by_sectors=30)
+df = db.fetch_input_data(top_n_tickers_by_sectors=50)
 price_df = db.pivot_price_data(df)
 
 all_results = pd.DataFrame()

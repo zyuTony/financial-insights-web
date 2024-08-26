@@ -57,6 +57,7 @@ class db_communicator(ABC):
     def insert_api_output_data(self):
         pass
 
+
 class stock_coint_db_communicator(db_communicator):
 
     def fetch_input_data(self, top_n_tickers):
@@ -264,6 +265,7 @@ class stock_coint_db_communicator(db_communicator):
         finally:
             cursor.close()
             print("API data update process completed.")
+    
                      
 class stock_coint_by_segment_db_communicator(stock_coint_db_communicator):
   
@@ -288,3 +290,203 @@ class stock_coint_by_segment_db_communicator(stock_coint_db_communicator):
         order by marketcapitalization desc, date
         """
         return pd.read_sql(query, self.conn)
+    
+    
+class coin_coint_db_communicator(db_communicator):
+
+    def fetch_input_data(self, top_n_tickers):
+        query = f"""
+        with top_tickers as (
+        select distinct symbol, market_cap
+        from coin_overview 
+        where market_cap is not null
+        and symbol not in ('USDC', 'USDT')
+        order by market_cap desc
+        limit {top_n_tickers})
+        
+        select a.*
+        from coin_historical_price a 
+        join top_tickers b 
+        on a.symbol=b.symbol
+        where date >= '2022-01-01'
+        order by market_cap desc, date
+        """
+        return pd.read_sql(query, self.conn)
+
+    def _create_output_data_table(self):
+        cursor = self.conn.cursor()
+        try:
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS coin_pairs_coint (
+                date TIMESTAMPTZ NOT NULL,
+                window_length INT NOT NULL,
+                symbol1 VARCHAR(50) NOT NULL,
+                symbol2 VARCHAR(50) NOT NULL,
+                pvalue NUMERIC NOT NULL,
+                UNIQUE (date, window_length, symbol1, symbol2)
+            );
+            """
+            cursor.execute(create_table_query)
+            self.conn.commit()
+            print("coin_pairs_coint table created successfully.")
+        except Exception as e:
+            print(f"Failed to create table: {str(e)}")
+            self.conn.rollback()
+        finally:
+            cursor.close()
+            
+    def insert_output_data(self, output_df):
+        self._create_output_data_table()
+        
+        csv_as_tuple = list(output_df.itertuples(index=False, name=None))
+        cursor = self.conn.cursor()
+        insert_query = """
+        INSERT INTO coin_pairs_coint (date, window_length, symbol1, symbol2, pvalue)
+        VALUES %s
+        ON CONFLICT DO NOTHINGG
+        """
+        try:      
+            chunk_size = 1000  # Increased chunk size for better performance
+            for i in range(0, len(csv_as_tuple), chunk_size):
+                execute_values(cursor, insert_query, csv_as_tuple[i:i+chunk_size])
+            self.conn.commit()
+            print(f"Inserted {len(csv_as_tuple)} rows into coin_pairs_coint table.")
+        except Exception as e:
+            print(f"Failed to insert data: {e}")
+            self.conn.rollback()
+        finally:
+            cursor.close()
+
+    def _create_signal_data_table(self):
+        cursor = self.conn.cursor()
+        try:
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS coin_signal (
+                symbol1 VARCHAR(50) NOT NULL,
+                symbol2 VARCHAR(50) NOT NULL,
+                window_length INT NOT NULL,
+                most_recent_coint_pct NUMERIC NOT NULL, 
+                recent_coint_pct NUMERIC NOT NULL, 
+                hist_coint_pct NUMERIC NOT NULL, 
+                r_squared NUMERIC NOT NULL, 
+                ols_constant NUMERIC NOT NULL, 
+                ols_coeff NUMERIC NOT NULL, 
+                last_updated TIMESTAMPTZ NOT NULL,
+                UNIQUE (symbol1, symbol2, window_length)
+            );
+            """
+            cursor.execute(create_table_query)
+            self.conn.commit()
+            print("coin_signal table created successfully.")
+        except Exception as e:
+            print(f"Failed to create table: {str(e)}")
+            self.conn.rollback()
+        finally:
+            cursor.close()
+    
+    def insert_signal_data_table(self, signal_df):
+        self._create_signal_data_table()
+        
+        csv_as_tuple = list(signal_df.itertuples(index=False, name=None))
+        cursor = self.conn.cursor()
+        insert_query = """
+        INSERT INTO coin_signal (symbol1, symbol2, window_length, most_recent_coint_pct, recent_coint_pct, hist_coint_pct, r_squared, ols_constant, ols_coeff, last_updated)
+        VALUES %s
+        ON CONFLICT (symbol1, symbol2, window_length) 
+        DO UPDATE SET 
+            most_recent_coint_pct = EXCLUDED.most_recent_coint_pct,
+            recent_coint_pct = EXCLUDED.recent_coint_pct,
+            hist_coint_pct = EXCLUDED.hist_coint_pct,
+            r_squared = EXCLUDED.r_squared,
+            ols_constant = EXCLUDED.ols_constant,
+            ols_coeff = EXCLUDED.ols_coeff,
+            last_updated = EXCLUDED.last_updated;
+        """
+        try:      
+            chunk_size = 1000  # Increased chunk size for better performance
+            for i in range(0, len(csv_as_tuple), chunk_size):
+                execute_values(cursor, insert_query, csv_as_tuple[i:i+chunk_size])
+            self.conn.commit()
+            print(f"Inserted/Updated {len(csv_as_tuple)} rows in coin_signal table.")
+        except Exception as e:
+            print(f"Failed to insert data: {e}")
+            self.conn.rollback()
+        finally:
+            cursor.close()
+            
+    def _create_api_output_table(self):
+        cursor = self.conn.cursor()
+        try:
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS coin_signal_api_output (
+            symbol1 VARCHAR(50) NOT NULL,
+            market_cap_1 BIGINT,
+            symbol2 VARCHAR(50) NOT NULL,
+            market_cap_2 BIGINT,
+            most_recent_coint_pct NUMERIC,
+            recent_coint_pct NUMERIC,
+            hist_coint_pct NUMERIC,
+            r_squared DECIMAL,
+            ols_constant DECIMAL,
+            ols_coeff DECIMAL,
+            last_updated TIMESTAMPTZ NOT NULL,
+            UNIQUE(symbol1, market_cap_1, symbol2, market_cap_2)
+            );
+            """
+            cursor.execute(create_table_query)
+            self.conn.commit()
+            print("coin_signal_api_output table created successfully.")
+        except Exception as e:
+            print(f"Failed to create table: {str(e)}")
+            self.conn.rollback()
+        finally:
+            cursor.close()
+
+    def insert_api_output_data(self):
+        self._create_api_output_table()
+        cursor = self.conn.cursor()
+        try:
+            insert_data_query = """
+            INSERT INTO coin_signal_api_output (symbol1, market_cap_1, symbol2, market_cap_2, most_recent_coint_pct, recent_coint_pct, hist_coint_pct, r_squared, ols_constant, ols_coeff, last_updated)
+            SELECT distinct
+                a.symbol1, 
+                b.market_cap AS market_cap_1, 
+                a.symbol2, 
+                c.market_cap AS market_cap_2, 
+                a.most_recent_coint_pct, 
+                a.recent_coint_pct,
+                a.hist_coint_pct,
+                a.r_squared, 
+                a.ols_constant, 
+                a.ols_coeff, 
+                a.last_updated
+            FROM 
+                coin_signal a 
+            JOIN 
+                coin_overview b ON a.symbol1 = b.symbol
+            JOIN 
+                coin_overview c ON a.symbol2 = c.symbol
+            ORDER BY 
+                a.most_recent_coint_pct DESC
+            ON CONFLICT (symbol1, market_cap_1, symbol2, market_cap_2)
+            DO UPDATE SET 
+            market_cap_1 = EXCLUDED.market_cap_1,
+            market_cap_2 = EXCLUDED.market_cap_2,
+            most_recent_coint_pct = EXCLUDED.most_recent_coint_pct,
+            recent_coint_pct = EXCLUDED.recent_coint_pct,
+            hist_coint_pct = EXCLUDED.hist_coint_pct,
+            r_squared = EXCLUDED.r_squared,
+            ols_constant = EXCLUDED.ols_constant,
+            ols_coeff = EXCLUDED.ols_coeff,
+            last_updated = EXCLUDED.last_updated;
+            """
+            cursor.execute(insert_data_query)
+            self.conn.commit()
+            print("coin_signal_api_output data inserted/updated successfully.")
+        except Exception as e:
+            print(f"Failed to insert/update data: {str(e)}")
+            self.conn.rollback()
+        finally:
+            cursor.close()
+            print("API data update process completed.")
+                     

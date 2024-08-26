@@ -3,20 +3,18 @@ from utils.refactor_calc import *
 from utils.refactor_db import *
 from dotenv import load_dotenv
 import os
+import json 
 import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning, message="pandas only supports SQLAlchemy connectable")
 
 load_dotenv(override=True)
-bn_api_key = os.getenv('BINANCE_API')  
-bn_api_secret = os.getenv('BINANCE_SECRET')  
-cmc_api_key = os.getenv('CMC_API')  
-avan_api_key = os.getenv('ALPHA_VANTAGE_PREM_API') 
-
+gc_api_key = os.getenv('GECKO_API') 
 DB_USERNAME = os.getenv('RDS_USERNAME') 
 DB_PASSWORD = os.getenv('RDS_PASSWORD') 
 DB_HOST = os.getenv('RDS_ENDPOINT') 
 DB_NAME = 'financial_data'
+
 
 '''
 Calculation Refresh Pipeline 1
@@ -27,11 +25,12 @@ Cadence: AUTOMATIC DAILY
   4. Insert signal to DB
 '''
 
-checkpoint_file_path = CHECKPOINT_JSON_PATH+'/calc_pipeline.json'
-coint_csv_path = COINT_CSV_PATH+'/calc_pipeline_coint.csv'
-signal_csv_path = SIGNAL_CSV_PATH+'/calc_pipeline_signal.csv'
+# get tickers price
+checkpoint_file_path = CHECKPOINT_JSON_PATH+'/coin_calc_pipeline.json'
+coint_csv_path = COINT_CSV_PATH+'/coin_calc_pipeline_coint.csv'
+signal_csv_path = SIGNAL_CSV_PATH+'/coin_calc_pipeline_signal.csv'
 
-db = stock_coint_db_communicator(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)
+db = coin_coint_db_communicator(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)
 db.connect()
 df = db.fetch_input_data(top_n_tickers=80)
 

@@ -165,14 +165,27 @@ class coint_signal_calculator(signal_calculator):
         return result_df
       
     def _get_ols_coeff(self, name1, name2, series1, series2):
-        ols_result = sm.OLS(series1, sm.add_constant(series2)).fit() 
-        return {
-            'name1': name1, 
-            'name2': name2,
-            'ols_constant': ols_result.params.iloc[0],  # Intercept
-            'ols_coeff': ols_result.params.iloc[1],  # coeff
-            'r_squared': ols_result.rsquared_adj  
-        }
+        if series1.std() == 0 or series2.std() == 0:
+            print(f"Warning: Constant series detected for {name1} or {name2}")
+            return None
+
+        # Check for perfect correlation
+        if abs(series1.corr(series2)) > 0.9999:
+            print(f"Warning: Near-perfect correlation detected between {name1} and {name2}")
+            return None
+
+        try:
+            ols_result = sm.OLS(series1, sm.add_constant(series2)).fit() 
+            return {
+                'name1': name1, 
+                'name2': name2,
+                'ols_constant': ols_result.params.iloc[0],  # Intercept
+                'ols_coeff': ols_result.params.iloc[1],  # coeff
+                'r_squared': ols_result.rsquared_adj  
+            }
+        except Exception as e:
+            print(f"Error in OLS calculation for {name1} and {name2}: {str(e)}")
+            return None
         
     def _get_multi_pairs_ols_coeff(self, hist_price_df, col_name):
         hist_price_df = hist_price_df.iloc[-OLS_WINDOW:] # use last 120 days to get coeff
@@ -190,8 +203,10 @@ class coint_signal_calculator(signal_calculator):
                 continue
             
             ols = self._get_ols_coeff(symbol1, symbol2, hist_price_df.loc[:, symbol1], hist_price_df.loc[:, symbol2])
-            ols['last_updated'] = last_updated
-            result.append(ols)
+            
+            if ols not None: 
+                ols['last_updated'] = last_updated
+                result.append(ols)
             
         return pd.DataFrame(result)
     
