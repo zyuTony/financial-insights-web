@@ -64,7 +64,7 @@ def create_stock_historical_price_table(conn):
             low NUMERIC NOT NULL,
             close NUMERIC NOT NULL,
             volume BIGINT NOT NULL,
-            UNIQUE (symbol, date)
+            PRIMARY KEY (symbol, date)
         );
         """
         cursor.execute(create_table_query)
@@ -154,7 +154,7 @@ def create_coin_historical_price_table(conn):
         high NUMERIC NOT NULL,
         low NUMERIC NOT NULL,
         close NUMERIC NOT NULL,
-        UNIQUE (symbol, date)
+        PRIMARY KEY (symbol, date)
         );
         """
         cursor.execute(create_table_query)
@@ -171,7 +171,7 @@ def create_coin_overview_table(conn):
     try:
         create_table_query = """
             CREATE TABLE IF NOT EXISTS coin_overview (
-            symbol VARCHAR(10),
+            symbol VARCHAR(10) NOT NULL,
             name VARCHAR(255),
             current_price DECIMAL(20, 8),  
             market_cap BIGINT,
@@ -192,7 +192,7 @@ def create_coin_overview_table(conn):
             atl DECIMAL(20, 8),  
             atl_date TIMESTAMP,
             last_updated TIMESTAMP,
-            UNIQUE (symbol, name)
+            PRIMARY KEY (symbol, name)
         );
         """
         cursor.execute(create_table_query)
@@ -214,7 +214,7 @@ def create_stock_pair_coint_table(conn):
             symbol1 VARCHAR(50) NOT NULL,
             symbol2 VARCHAR(50) NOT NULL,
             pvalue NUMERIC NOT NULL,
-            UNIQUE (date, window_length, symbol1, symbol2)
+            PRIMARY KEY (date, window_length, symbol1, symbol2)
         );
         """
         cursor.execute(create_table_query)
@@ -236,7 +236,7 @@ def create_coin_pair_coint_table(conn):
             symbol1 VARCHAR(50) NOT NULL,
             symbol2 VARCHAR(50) NOT NULL,
             pvalue NUMERIC NOT NULL,
-            UNIQUE (date, window_length, symbol1, symbol2)
+            PRIMARY KEY (date, window_length, symbol1, symbol2)
         );
         """
         cursor.execute(create_table_query)
@@ -263,7 +263,7 @@ def create_stock_signal_table(conn):
             ols_constant NUMERIC NOT NULL, 
             ols_coeff NUMERIC NOT NULL, 
             last_updated TIMESTAMPTZ NOT NULL,
-            UNIQUE (symbol1, symbol2, window_length)
+            PRIMARY KEY (symbol1, symbol2, window_length)
         );
         """
         cursor.execute(create_table_query)
@@ -290,7 +290,7 @@ def create_coin_signal_table(conn):
             ols_constant NUMERIC NOT NULL, 
             ols_coeff NUMERIC NOT NULL, 
             last_updated TIMESTAMPTZ NOT NULL,
-            UNIQUE (symbol1, symbol2, window_length)
+            PRIMARY KEY (symbol1, symbol2, window_length)
         );
         """
         cursor.execute(create_table_query)
@@ -321,7 +321,7 @@ def insert_stock_historical_price_table(conn, file_path):
                     float(metrics["1. open"]),
                     float(metrics["2. high"]),
                     float(metrics["3. low"]),
-                    float(metrics["5. adjusted close"]),
+                    float(metrics["4. close"]),
                     int(metrics["6. volume"])
                 )
                 records.append(record)
@@ -331,7 +331,12 @@ def insert_stock_historical_price_table(conn, file_path):
             INSERT INTO stock_historical_price (symbol, date, open, high, low, close, volume)
             VALUES %s
             ON CONFLICT (symbol, date)
-            DO NOTHING
+            DO UPDATE SET 
+                open = EXCLUDED.open,
+                high = EXCLUDED.high,
+                low = EXCLUDED.low,
+                close = EXCLUDED.close,
+                volume = EXCLUDED.volume
             """
             execute_values(cursor, insert_query, records)
             conn.commit()
@@ -600,7 +605,8 @@ def insert_stock_pair_coint_table(conn, csv_as_tuple):
     insert_query = """
     INSERT INTO stock_pairs_coint (date, window_length, symbol1, symbol2, pvalue)
     VALUES %s
-    ON CONFLICT DO NOTHING
+    DO UPDATE SET 
+        pvalue = EXCLUDED.pvalue
     """
     try:      
         chunk_size = 100
@@ -618,7 +624,8 @@ def insert_coin_pair_coint_table(conn, csv_as_tuple):
     insert_query = """
     INSERT INTO coin_pairs_coint (date, window_length, symbol1, symbol2, pvalue)
     VALUES %s
-    ON CONFLICT DO NOTHING
+    DO UPDATE SET 
+        pvalue = EXCLUDED.pvalue
     """
     try:      
         chunk_size = 100
@@ -638,13 +645,13 @@ def insert_stock_signal_table(conn, csv_as_tuple):
     VALUES %s
     ON CONFLICT (symbol1, symbol2, window_length) 
     DO UPDATE SET 
-    most_recent_coint_pct = EXCLUDED.most_recent_coint_pct,
-    recent_coint_pct = EXCLUDED.recent_coint_pct,
-    hist_coint_pct = EXCLUDED.hist_coint_pct,
-    r_squared = EXCLUDED.r_squared,
-    ols_constant = EXCLUDED.ols_constant,
-    ols_coeff = EXCLUDED.ols_coeff,
-    last_updated = EXCLUDED.last_updated;
+        most_recent_coint_pct = EXCLUDED.most_recent_coint_pct,
+        recent_coint_pct = EXCLUDED.recent_coint_pct,
+        hist_coint_pct = EXCLUDED.hist_coint_pct,
+        r_squared = EXCLUDED.r_squared,
+        ols_constant = EXCLUDED.ols_constant,
+        ols_coeff = EXCLUDED.ols_coeff,
+        last_updated = EXCLUDED.last_updated;
     """
     try:      
         chunk_size = 100
@@ -664,13 +671,13 @@ def insert_coin_signal_table(conn, csv_as_tuple):
     VALUES %s
     ON CONFLICT (symbol1, symbol2, window_length) 
     DO UPDATE SET 
-    most_recent_coint_pct = EXCLUDED.most_recent_coint_pct,
-    recent_coint_pct = EXCLUDED.recent_coint_pct,
-    hist_coint_pct = EXCLUDED.hist_coint_pct,
-    r_squared = EXCLUDED.r_squared,
-    ols_constant = EXCLUDED.ols_constant,
-    ols_coeff = EXCLUDED.ols_coeff,
-    last_updated = EXCLUDED.last_updated;
+        most_recent_coint_pct = EXCLUDED.most_recent_coint_pct,
+        recent_coint_pct = EXCLUDED.recent_coint_pct,
+        hist_coint_pct = EXCLUDED.hist_coint_pct,
+        r_squared = EXCLUDED.r_squared,
+        ols_constant = EXCLUDED.ols_constant,
+        ols_coeff = EXCLUDED.ols_coeff,
+        last_updated = EXCLUDED.last_updated;
     """
     try:      
         chunk_size = 100
@@ -682,6 +689,7 @@ def insert_coin_signal_table(conn, csv_as_tuple):
         conn.rollback()
     finally:
         cursor.close()
+
 
 # Post SQL Operations
 def update_stock_signal_final_api_data(conn):
@@ -705,7 +713,7 @@ def update_stock_signal_final_api_data(conn):
         ols_constant DECIMAL,
         ols_coeff DECIMAL,
         last_updated TIMESTAMPTZ NOT NULL,
-        UNIQUE(symbol1, symbol2)
+        PRIMARY KEY (symbol1, symbol2)
         );
         """
         cursor.execute(create_table_query)
@@ -768,8 +776,10 @@ def update_coin_signal_final_api_data(conn):
         create_table_query = """
         CREATE TABLE IF NOT EXISTS coin_signal_api_output (
         symbol1 VARCHAR(50) NOT NULL,
+        name1 VARCHAR(50) NOT NULL,
         market_cap_1 BIGINT,
         symbol2 VARCHAR(50) NOT NULL,
+        name2 VARCHAR(50) NOT NULL,
         market_cap_2 BIGINT,
         most_recent_coint_pct NUMERIC,
         recent_coint_pct NUMERIC,
@@ -778,7 +788,7 @@ def update_coin_signal_final_api_data(conn):
         ols_constant DECIMAL,
         ols_coeff DECIMAL,
         last_updated TIMESTAMPTZ NOT NULL,
-        UNIQUE(symbol1, market_cap_1, symbol2, market_cap_2)
+        PRIMARY KEY (symbol1, name1, symbol2, name2)
         );
         """
         cursor.execute(create_table_query)
@@ -787,8 +797,10 @@ def update_coin_signal_final_api_data(conn):
         INSERT INTO coin_signal_api_output (symbol1, market_cap_1, symbol2, market_cap_2, most_recent_coint_pct, recent_coint_pct, hist_coint_pct, r_squared, ols_constant, ols_coeff, last_updated)
         SELECT distinct
             a.symbol1, 
+            b.name as name1,
             b.market_cap AS market_cap_1, 
             a.symbol2, 
+            c.name as name2,
             c.market_cap AS market_cap_2, 
             a.most_recent_coint_pct, 
             a.recent_coint_pct,
@@ -805,7 +817,7 @@ def update_coin_signal_final_api_data(conn):
             coin_overview c ON a.symbol2 = c.symbol
         ORDER BY 
             a.most_recent_coint_pct DESC
-        ON CONFLICT (symbol1, market_cap_1, symbol2, market_cap_2)
+        ON CONFLICT (symbol1, name1, symbol2, name2)
         DO UPDATE SET 
         market_cap_1 = EXCLUDED.market_cap_1,
         market_cap_2 = EXCLUDED.market_cap_2,
