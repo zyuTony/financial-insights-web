@@ -87,7 +87,7 @@ class stock_coint_db_communicator(db_communicator):
                 symbol1 VARCHAR(50) NOT NULL,
                 symbol2 VARCHAR(50) NOT NULL,
                 pvalue NUMERIC NOT NULL,
-                UNIQUE (date, window_length, symbol1, symbol2)
+                PRIMARY KEY (date, window_length, symbol1, symbol2)
             );
             """
             cursor.execute(create_table_query)
@@ -107,7 +107,8 @@ class stock_coint_db_communicator(db_communicator):
         insert_query = """
         INSERT INTO stock_pairs_coint (date, window_length, symbol1, symbol2, pvalue)
         VALUES %s
-        ON CONFLICT DO NOTHING
+        DO UPDATE SET 
+            pvalue = EXCLUDED.pvalue
         """
         try:      
             chunk_size = 1000  # Increased chunk size for better performance
@@ -136,7 +137,7 @@ class stock_coint_db_communicator(db_communicator):
                 ols_constant NUMERIC NOT NULL, 
                 ols_coeff NUMERIC NOT NULL, 
                 last_updated TIMESTAMPTZ NOT NULL,
-                UNIQUE (symbol1, symbol2, window_length)
+                PRIMARY KEY (symbol1, symbol2, window_length)
             );
             """
             cursor.execute(create_table_query)
@@ -154,7 +155,7 @@ class stock_coint_db_communicator(db_communicator):
         csv_as_tuple = list(signal_df.itertuples(index=False, name=None))
         cursor = self.conn.cursor()
         insert_query = """
-        INSERT INTO stock_signal (symbol1, symbol2, window_length, most_recent_coint_pct, recent_coint_pct, hist_coint_pct, r_squared, ols_constant, ols_coeff, last_updated)
+        INSERT INTO stock_signal (symbol1, symbol2, window_length,most_recent_coint_pct, recent_coint_pct, hist_coint_pct, r_squared, ols_constant, ols_coeff, last_updated)
         VALUES %s
         ON CONFLICT (symbol1, symbol2, window_length) 
         DO UPDATE SET 
@@ -198,7 +199,7 @@ class stock_coint_db_communicator(db_communicator):
             ols_constant DECIMAL,
             ols_coeff DECIMAL,
             last_updated TIMESTAMPTZ NOT NULL,
-            UNIQUE(symbol1, symbol2)
+            PRIMARY KEY (symbol1, symbol2)
             );
             """
             cursor.execute(create_table_query)
@@ -323,7 +324,7 @@ class coin_coint_db_communicator(db_communicator):
                 symbol1 VARCHAR(50) NOT NULL,
                 symbol2 VARCHAR(50) NOT NULL,
                 pvalue NUMERIC NOT NULL,
-                UNIQUE (date, window_length, symbol1, symbol2)
+                PRIMARY KEY (date, window_length, symbol1, symbol2)
             );
             """
             cursor.execute(create_table_query)
@@ -343,7 +344,8 @@ class coin_coint_db_communicator(db_communicator):
         insert_query = """
         INSERT INTO coin_pairs_coint (date, window_length, symbol1, symbol2, pvalue)
         VALUES %s
-        ON CONFLICT DO NOTHINGG
+        DO UPDATE SET 
+            pvalue = EXCLUDED.pvalue
         """
         try:      
             chunk_size = 1000  # Increased chunk size for better performance
@@ -372,7 +374,7 @@ class coin_coint_db_communicator(db_communicator):
                 ols_constant NUMERIC NOT NULL, 
                 ols_coeff NUMERIC NOT NULL, 
                 last_updated TIMESTAMPTZ NOT NULL,
-                UNIQUE (symbol1, symbol2, window_length)
+                PRIMARY KEY (symbol1, symbol2, window_length)
             );
             """
             cursor.execute(create_table_query)
@@ -420,8 +422,10 @@ class coin_coint_db_communicator(db_communicator):
             create_table_query = """
             CREATE TABLE IF NOT EXISTS coin_signal_api_output (
             symbol1 VARCHAR(50) NOT NULL,
+            name1 VARCHAR(50) NOT NULL,
             market_cap_1 BIGINT,
             symbol2 VARCHAR(50) NOT NULL,
+            name2 VARCHAR(50) NOT NULL,
             market_cap_2 BIGINT,
             most_recent_coint_pct NUMERIC,
             recent_coint_pct NUMERIC,
@@ -430,7 +434,7 @@ class coin_coint_db_communicator(db_communicator):
             ols_constant DECIMAL,
             ols_coeff DECIMAL,
             last_updated TIMESTAMPTZ NOT NULL,
-            UNIQUE(symbol1, market_cap_1, symbol2, market_cap_2)
+            PRIMARY KEY (symbol1, name1, symbol2, name2)
             );
             """
             cursor.execute(create_table_query)
@@ -447,39 +451,41 @@ class coin_coint_db_communicator(db_communicator):
         cursor = self.conn.cursor()
         try:
             insert_data_query = """
-            INSERT INTO coin_signal_api_output (symbol1, market_cap_1, symbol2, market_cap_2, most_recent_coint_pct, recent_coint_pct, hist_coint_pct, r_squared, ols_constant, ols_coeff, last_updated)
-            SELECT distinct
-                a.symbol1, 
-                b.market_cap AS market_cap_1, 
-                a.symbol2, 
-                c.market_cap AS market_cap_2, 
-                a.most_recent_coint_pct, 
-                a.recent_coint_pct,
-                a.hist_coint_pct,
-                a.r_squared, 
-                a.ols_constant, 
-                a.ols_coeff, 
-                a.last_updated
-            FROM 
-                coin_signal a 
-            JOIN 
-                coin_overview b ON a.symbol1 = b.symbol
-            JOIN 
-                coin_overview c ON a.symbol2 = c.symbol
-            ORDER BY 
-                a.most_recent_coint_pct DESC
-            ON CONFLICT (symbol1, market_cap_1, symbol2, market_cap_2)
-            DO UPDATE SET 
-            market_cap_1 = EXCLUDED.market_cap_1,
-            market_cap_2 = EXCLUDED.market_cap_2,
-            most_recent_coint_pct = EXCLUDED.most_recent_coint_pct,
-            recent_coint_pct = EXCLUDED.recent_coint_pct,
-            hist_coint_pct = EXCLUDED.hist_coint_pct,
-            r_squared = EXCLUDED.r_squared,
-            ols_constant = EXCLUDED.ols_constant,
-            ols_coeff = EXCLUDED.ols_coeff,
-            last_updated = EXCLUDED.last_updated;
-            """
+        INSERT INTO coin_signal_api_output (symbol1, name1, market_cap_1, symbol2, name2, market_cap_2, most_recent_coint_pct, recent_coint_pct, hist_coint_pct, r_squared, ols_constant, ols_coeff, last_updated)
+        SELECT distinct
+            a.symbol1, 
+            b.name as name1,
+            b.market_cap AS market_cap_1, 
+            a.symbol2, 
+            c.name as name2,
+            c.market_cap AS market_cap_2, 
+            a.most_recent_coint_pct, 
+            a.recent_coint_pct,
+            a.hist_coint_pct,
+            a.r_squared, 
+            a.ols_constant, 
+            a.ols_coeff, 
+            a.last_updated
+        FROM 
+            coin_signal a 
+        JOIN 
+            coin_overview b ON a.symbol1 = b.symbol
+        JOIN 
+            coin_overview c ON a.symbol2 = c.symbol
+        ORDER BY 
+            a.most_recent_coint_pct DESC
+        ON CONFLICT (symbol1, name1, symbol2, name2)
+        DO UPDATE SET 
+        market_cap_1 = EXCLUDED.market_cap_1,
+        market_cap_2 = EXCLUDED.market_cap_2,
+        most_recent_coint_pct = EXCLUDED.most_recent_coint_pct,
+        recent_coint_pct = EXCLUDED.recent_coint_pct,
+        hist_coint_pct = EXCLUDED.hist_coint_pct,
+        r_squared = EXCLUDED.r_squared,
+        ols_constant = EXCLUDED.ols_constant,
+        ols_coeff = EXCLUDED.ols_coeff,
+        last_updated = EXCLUDED.last_updated;
+        """
             cursor.execute(insert_data_query)
             self.conn.commit()
             print("coin_signal_api_output data inserted/updated successfully.")

@@ -204,7 +204,7 @@ class coint_signal_calculator(signal_calculator):
             
             ols = self._get_ols_coeff(symbol1, symbol2, hist_price_df.loc[:, symbol1], hist_price_df.loc[:, symbol2])
             
-            if ols not None: 
+            if ols is not None: 
                 ols['last_updated'] = last_updated
                 result.append(ols)
             
