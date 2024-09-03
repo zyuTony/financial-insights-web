@@ -166,6 +166,29 @@ def create_coin_historical_price_table(conn):
     finally:
         cursor.close()
 
+def create_coin_hourly_historical_price_table(conn):
+    cursor = conn.cursor()
+    try:
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS coin_hourly_historical_price (
+        symbol VARCHAR(20) NOT NULL,
+        date TIMESTAMPTZ NOT NULL,
+        open NUMERIC NOT NULL,
+        high NUMERIC NOT NULL,
+        low NUMERIC NOT NULL,
+        close NUMERIC NOT NULL,
+        PRIMARY KEY (symbol, date)
+        );
+        """
+        cursor.execute(create_table_query)
+        conn.commit()
+        print(f"coin_hourly_historical_price created successfully.")
+    except Exception as e:
+        print(f"Failed to create table: {str(e)}")
+        conn.rollback()
+    finally:
+        cursor.close()
+        
 def create_coin_overview_table(conn):
     cursor = conn.cursor()
     try:
@@ -294,6 +317,48 @@ def insert_coin_historical_price_table(conn, file_path):
     finally:
         cursor.close()
 
+def insert_coin_hourly_historical_price_table(conn, file_path):
+    cursor = conn.cursor()
+    try: 
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+            symbol = os.path.splitext(os.path.basename(file_path))[0]
+            extracted_data = []
+            seen_dates = set()
+            for entry in data:
+                date = pd.to_datetime(entry[0], unit='ms').strftime('%Y-%m-%d')
+                open_price  = entry[1]
+                high = entry[2]
+                low = entry[3]
+                close = entry[4]
+                               
+                if date not in seen_dates:# this is to deal with gc duplicated data that cause errors sometimes
+                    extracted_data.append([symbol, date, open_price, high, low, close])
+                    seen_dates.add(date)
+            
+            # Insert data into the database
+            insert_query = """
+            INSERT INTO coin_hourly_historical_price (symbol, date, open, high, low, close)
+            VALUES %s
+            ON CONFLICT (symbol, date)
+            DO UPDATE SET
+                open = EXCLUDED.open,
+                high = EXCLUDED.high,
+                low = EXCLUDED.low,
+                close = EXCLUDED.close
+            WHERE coin_hourly_historical_price.open <> EXCLUDED.open
+               OR coin_hourly_historical_price.high <> EXCLUDED.high
+               OR coin_hourly_historical_price.low <> EXCLUDED.low
+               OR coin_hourly_historical_price.close <> EXCLUDED.close;
+            """
+            execute_values(cursor, insert_query, extracted_data)
+            conn.commit()
+    except Exception as e:
+        print(f"Failed to insert data from {file_path}: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
+        
 def insert_stock_overview_table(conn, file_path):
     cursor = conn.cursor()
     try:

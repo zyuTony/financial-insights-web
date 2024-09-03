@@ -12,8 +12,10 @@ from psycopg2 import OperationalError
 from psycopg2.extras import execute_values
 from config import *
 
-class db_communicator(ABC):
-
+class db_communicator(ABC): 
+    '''object that 1) connect to db 2) ingest input data 3) insert output to db. 
+    Template for stock and coin cointegration index calculation.
+    '''
     def __init__(self, db_name, db_host, db_username, db_password):
         self.db_name = db_name
         self.db_host = db_host
@@ -59,7 +61,7 @@ class db_communicator(ABC):
 
 
 class stock_coint_db_communicator(db_communicator):
-
+    '''inherit db_communicator with custom stock output table creation and output data insertion'''
     def fetch_input_data(self, top_n_tickers):
         query = f"""
         WITH top_tickers AS (
@@ -269,7 +271,7 @@ class stock_coint_db_communicator(db_communicator):
     
                      
 class stock_coint_by_segment_db_communicator(stock_coint_db_communicator):
-  
+    '''variation of stock_coint_db_communicator, with new method of ingesting input data'''
     def fetch_input_data(self, top_n_tickers_by_sectors):
         query = f"""
         WITH ranked_stocks AS (
@@ -294,7 +296,7 @@ class stock_coint_by_segment_db_communicator(stock_coint_db_communicator):
     
     
 class coin_coint_db_communicator(db_communicator):
-
+    '''inherit db_communicator with custom crypto output table creation and output data insertion'''
     def fetch_input_data(self, top_n_tickers):
         query = f"""
         with top_tickers as (

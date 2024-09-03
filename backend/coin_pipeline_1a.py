@@ -6,6 +6,13 @@ import os
 import json
 import requests
 from datetime import datetime, timedelta
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s | %(levelname)8s | %(message)s',
+    datefmt='%Y-%m-%d %H:%M' #datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 load_dotenv(override=True)
 gc_api_key = os.getenv('GECKO_API') 
@@ -21,9 +28,10 @@ Cadence: AUTOMATIC DAILY
   2. Insert data into DB
 '''
 
-# fetch latest 5 days data since already have previous data
+# fetch all historical data
 end_date = datetime.now() 
-start_date = end_date - timedelta(days=5)
+# start_date = end_date - timedelta(days=5)
+start_date = datetime.strptime('2018-02-10', '%Y-%m-%d')
 unix_end = get_unix_timestamp(end_date.strftime('%Y-%m-%d'))
 unix_start = get_unix_timestamp(start_date.strftime('%Y-%m-%d'))
 print(f"---- Download coin data from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
@@ -45,9 +53,9 @@ for id, symbol in zip(ids, symbols):
     current_start = unix_start
     all_data = []
     while current_start < unix_end:
-        current_end = min(current_start + DAYS_PER_API_LIMIT * 24 * 60 * 60, unix_end)
+        current_end = min(current_start + DAYS_PER_API_LIMIT_HOURLY * 24 * 60 * 60, unix_end)
         try:
-            url = f"https://pro-api.coingecko.com/api/v3/coins/{id}/ohlc/range?vs_currency=usd&from={current_start}&to={current_end}&interval=daily"
+            url = f"https://pro-api.coingecko.com/api/v3/coins/{id}/ohlc/range?vs_currency=usd&from={current_start}&to={current_end}&interval=hourly"
             headers = {
                 "accept": "application/json",
                 "x-cg-pro-api-key": gc_api_key
@@ -56,7 +64,7 @@ for id, symbol in zip(ids, symbols):
             if response.status_code == 200:
                 all_data.extend(response.json())  
 
-                # print(f"Downloaded data for {symbol} from {current_start} to {current_end}") # for debug
+                logging.info(f"Downloaded data for {symbol} from {current_start} to {current_end}")
             else:
                 print(f"Failed to download data for {symbol} from {current_start} to {current_end}: {response.status_code} {response.text}")
             
@@ -65,25 +73,7 @@ for id, symbol in zip(ids, symbols):
             print(f"Exception occurred while downloading data for {symbol} from {current_start} to {current_end}: {e}")
             break
 
-    with open(GECKO_DAILY_JSON_PATH+f'/{symbol}.json', 'w') as file:
+    with open(GECKO_HOURLY_JSON_PATH+f'/{symbol}.json', 'w') as file:
         json.dump(all_data, file, indent=4)
     # print(f"Saved full data for {symbol} to {symbol}.json")# for debug
 print('---- Downloads complete!')
-# insert to DB
-# price data
-conn = connect_to_db(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)
-create_coin_historical_price_table(conn)
-print(f'---- Inserting coin price data...')
-for filename in os.listdir(GECKO_DAILY_JSON_PATH):
-    if filename.endswith('.json'):
-        file_path = os.path.join(GECKO_DAILY_JSON_PATH, filename)
-        insert_coin_historical_price_table(conn, file_path)
-print(f'---- Insertion complete!')
-
-# overview
-create_coin_overview_table(conn)
-print(f'---- Inserting coin overview info...')
-insert_coin_overview_table(conn, GECKO_JSON_PATH+'/mapping/top_symbol_by_mc.json')
-print(f'---- Insertion complete!')
-
-conn.close()
