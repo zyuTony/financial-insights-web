@@ -11,6 +11,13 @@ import psycopg2
 from psycopg2 import OperationalError
 from psycopg2.extras import execute_values
 from config import *
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s | %(levelname)8s | %(message)s',
+    datefmt='%Y-%m-%d %H:%M' #datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 '''CALCULATOR'''
 class signal_calculator(ABC):
@@ -74,12 +81,12 @@ class coint_signal_calculator(signal_calculator):
         for i in range(price_df.shape[1]):
             name1 = price_df.columns[i]
             data1 = price_df.iloc[:, i]
-            print(f'--- {name1} - getting all possible pairs')
+            logging.info(f'--- {name1} - getting all possible pairs')
             for j in range(i+1, price_df.shape[1]):
                 # save progress
                 name2 = price_df.columns[j]      
                 if [name1, name2] in checkpoint_data:
-                    print(f"Skip pair {name1} X {name2} since already ran")
+                    logging.info(f"Skip pair {name1} X {name2} since already ran")
                     continue
                 # try rolling cointegration
                 try:
@@ -88,7 +95,7 @@ class coint_signal_calculator(signal_calculator):
                     results = pd.concat([results, res], axis=1)
                     checkpoint_data.append([name1, name2])
                 except Exception as e:
-                    print(f'Error processing {name1} X {name2}: {e}')
+                    logging.error(f'Error processing {name1} X {name2}: {e}')
                     continue
             try:
                 # periodically save all results to csv and checkpoint file
@@ -97,16 +104,16 @@ class coint_signal_calculator(signal_calculator):
                 try:
                     results.to_csv(self.output_data_path, index=False) 
                 except Exception as e:  
-                    print(f"Error saving to CSV: {e} but continue")    
+                    logging.error(f"Error saving to CSV: {e} but continue")    
             except Exception as e:
-                print(f"Error saving checkpoint: {e} but continue")
+                logging.error(f"Error saving checkpoint: {e} but continue")
                 continue
 
         # save final results to csv
         with open(self.checkpoint_file_path, 'w') as file:
             json.dump(checkpoint_data, file, indent=4)
         results.to_csv(self.output_data_path, index=False)
-        print("Results saved to CSV")
+        logging.info("Results saved to CSV")
         return results  
        
     def transform_data(self, df):
@@ -119,7 +126,7 @@ class coint_signal_calculator(signal_calculator):
             df_melted = df_melted[['date', 'window_length', 'symbol1', 'symbol2', 'value']]
             return df_melted
         except Exception as e:
-            print(f"Error in transform_data: {str(e)}")
+            logging.error(f"Error in transform_data: {str(e)}")
             import sys
             sys.exit("Stopping script due to error in transform_data")
         
@@ -166,12 +173,12 @@ class coint_signal_calculator(signal_calculator):
       
     def _get_ols_coeff(self, name1, name2, series1, series2):
         if series1.std() == 0 or series2.std() == 0:
-            print(f"Warning: Constant series detected for {name1} or {name2}")
+            logging.warning(f"Warning: Constant series detected for {name1} or {name2}")
             return None
 
         # Check for perfect correlation
         if abs(series1.corr(series2)) > 0.9999:
-            print(f"Warning: Near-perfect correlation detected between {name1} and {name2}")
+            logging.warning(f"Warning: Near-perfect correlation detected between {name1} and {name2}")
             return None
 
         try:
@@ -184,7 +191,7 @@ class coint_signal_calculator(signal_calculator):
                 'r_squared': ols_result.rsquared_adj  
             }
         except Exception as e:
-            print(f"Error in OLS calculation for {name1} and {name2}: {str(e)}")
+            logging.error(f"Error in OLS calculation for {name1} and {name2}: {str(e)}")
             return None
         
     def _get_multi_pairs_ols_coeff(self, hist_price_df, col_name):
@@ -192,14 +199,14 @@ class coint_signal_calculator(signal_calculator):
         last_updated = hist_price_df['date'].iloc[-1]
         hist_price_df = hist_price_df.drop('date', axis=1)
         result = []
-        print('---Begin getting ols for pairs')
+        logging.info('---Begin getting ols for pairs')
         for pair in tqdm(col_name):
             split_string = pair.split('_')
             symbol1 = split_string[0]
             symbol2 = split_string[1]
             
             if symbol1 not in hist_price_df.columns or symbol2 not in hist_price_df.columns:
-                print(f"Skipping pair {pair}: Columns {symbol1} or {symbol2} are missing in hist_price_df")
+                logging.warning(f"Skipping pair {pair}: Columns {symbol1} or {symbol2} are missing in hist_price_df")
                 continue
             
             ols = self._get_ols_coeff(symbol1, symbol2, hist_price_df.loc[:, symbol1], hist_price_df.loc[:, symbol2])
