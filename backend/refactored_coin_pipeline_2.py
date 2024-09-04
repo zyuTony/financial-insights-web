@@ -3,7 +3,6 @@ from utils.refactor_calc import *
 from utils.refactor_db import *
 from dotenv import load_dotenv
 import os
-import json 
 import warnings
 
 warnings.filterwarnings("ignore", category=UserWarning, message="pandas only supports SQLAlchemy connectable")

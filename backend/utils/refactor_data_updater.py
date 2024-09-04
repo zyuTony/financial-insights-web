@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 import os
 import json
 import pandas as pd
-from tqdm import tqdm
 import psycopg2
 from psycopg2 import OperationalError
 from psycopg2.extras import execute_values
@@ -11,7 +10,7 @@ import logging
 from datetime import datetime
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format='%(asctime)s | %(levelname)8s | %(message)s',
     datefmt='%Y-%m-%d %H:%M' #datefmt='%Y-%m-%d %H:%M:%S'
 )
@@ -59,8 +58,9 @@ def truncate_string(value, length):
         logging.error(f"Error truncating string: {e}")
         return None
 
+
 class db_refresher(ABC): 
-    '''object that 1) connect to db 2) insert refreshed data.
+    '''object that 1) connect to db 2) transform and insert json data depends on source.
        template for coin_gecko_db and avan_stock_db'''
     def __init__(self, db_name, db_host, db_username, db_password, table_name):
         self.db_name = db_name
@@ -117,7 +117,6 @@ class db_refresher(ABC):
             self.conn.rollback()
         finally:
             cursor.close()
-
 
 class coin_gecko_OHLC_db_refresher(db_refresher):
     '''handle all data insertion from OHLC data via coin gecko api'''
@@ -238,7 +237,7 @@ class avan_stock_OHLC_db_refresher(db_refresher):
         try:
             with open(file_path, 'r') as file:
                 data = json.load(file)
-                
+            
             symbol = data["Meta Data"]["2. Symbol"]
             time_series_data = data["Time Series (Daily)"]
             
@@ -256,10 +255,9 @@ class avan_stock_OHLC_db_refresher(db_refresher):
                 outputs.append(output)
             return outputs 
         except Exception as e:
-            logging.debug(f"Data transformation failed for {symbol}: {e}")
+            logging.debug(f"Data transformation failed: {e}")
             return None
-   
-        
+       
 class coin_gecko_overview_db_refresher(db_refresher):
     '''handle all data insertion from OHLC data via coin gecko api'''
     def __init__(self, *args):
@@ -355,7 +353,6 @@ class coin_gecko_overview_db_refresher(db_refresher):
         except Exception as e:
             logging.debug(f"Data transformation failed for {self.table_name}: {e}")
             return None
-    
       
 class avan_stock_overview_db_refresher(db_refresher):
     '''handle all data insertion from OHLC data via coin gecko api'''

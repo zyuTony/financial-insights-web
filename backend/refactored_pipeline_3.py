@@ -34,8 +34,8 @@ signal_csv_path = SIGNAL_CSV_PATH+'/calc_pipeline_signal.csv'
 db = stock_coint_db_communicator(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)
 db.connect()
 df = db.fetch_input_data(top_n_tickers=80)
-
 price_df = db.pivot_price_data(df)
+
 coint_calc = coint_signal_calculator(price_df, checkpoint_file_path, coint_csv_path, signal_csv_path)
 coint_df = coint_calc.calculate_data()
 # coint_df = pd.read_csv(coint_csv_path)

@@ -1,16 +1,16 @@
 from abc import ABC, abstractmethod
-import os
-import json
-import warnings
 import pandas as pd
-import numpy as np
-from statsmodels.tsa.stattools import coint
-import statsmodels.api as sm
-from tqdm import tqdm
 import psycopg2
 from psycopg2 import OperationalError
 from psycopg2.extras import execute_values
 from config import *
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s | %(levelname)8s | %(message)s',
+    datefmt='%Y-%m-%d %H:%M' #datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 class db_communicator(ABC): 
     '''object that 1) connect to db 2) ingest input data 3) insert output to db. 
@@ -30,15 +30,15 @@ class db_communicator(ABC):
                 database=self.db_name,
                 user=self.db_username,
                 password=self.db_password)
-            print(f"Connected to {self.db_host} {self.db_name}!")
+            logging.info(f"Connected to {self.db_host} {self.db_name}!")
         except OperationalError as e:
-            print(f"Error connecting to database: {e}")
+            logging.error(f"Error connecting to database: {e}")
             self.conn = None
 
     def close(self):
         if self.conn:
             self.conn.close()
-            print("Database connection closed.")
+            logging.info("Database connection closed.")
 
     def pivot_price_data(self, df):
         df = df.drop_duplicates(subset=['date', 'symbol'])
@@ -58,7 +58,6 @@ class db_communicator(ABC):
     @abstractmethod
     def insert_api_output_data(self):
         pass
-
 
 class stock_coint_db_communicator(db_communicator):
     '''inherit db_communicator with custom stock output table creation and output data insertion'''
@@ -94,9 +93,9 @@ class stock_coint_db_communicator(db_communicator):
             """
             cursor.execute(create_table_query)
             self.conn.commit()
-            print("stock_pairs_coint table created successfully.")
+            logging.info("stock_pairs_coint table created successfully.")
         except Exception as e:
-            print(f"Failed to create table: {str(e)}")
+            logging.error(f"Failed to create table: {str(e)}")
             self.conn.rollback()
         finally:
             cursor.close()
@@ -117,9 +116,9 @@ class stock_coint_db_communicator(db_communicator):
             for i in range(0, len(csv_as_tuple), chunk_size):
                 execute_values(cursor, insert_query, csv_as_tuple[i:i+chunk_size])
             self.conn.commit()
-            print(f"Inserted {len(csv_as_tuple)} rows into stock_pairs_coint table.")
+            logging.info(f"Inserted {len(csv_as_tuple)} rows into stock_pairs_coint table.")
         except Exception as e:
-            print(f"Failed to insert data: {e}")
+            logging.error(f"Failed to insert data: {e}")
             self.conn.rollback()
         finally:
             cursor.close()
@@ -144,9 +143,9 @@ class stock_coint_db_communicator(db_communicator):
             """
             cursor.execute(create_table_query)
             self.conn.commit()
-            print("stock_signal table created successfully.")
+            logging.info("stock_signal table created successfully.")
         except Exception as e:
-            print(f"Failed to create table: {str(e)}")
+            logging.error(f"Failed to create table: {str(e)}")
             self.conn.rollback()
         finally:
             cursor.close()
@@ -174,9 +173,9 @@ class stock_coint_db_communicator(db_communicator):
             for i in range(0, len(csv_as_tuple), chunk_size):
                 execute_values(cursor, insert_query, csv_as_tuple[i:i+chunk_size])
             self.conn.commit()
-            print(f"Inserted/Updated {len(csv_as_tuple)} rows in stock_signal table.")
+            logging.info(f"Inserted/Updated {len(csv_as_tuple)} rows in stock_signal table.")
         except Exception as e:
-            print(f"Failed to insert data: {e}")
+            logging.error(f"Failed to insert data: {e}")
             self.conn.rollback()
         finally:
             cursor.close()
@@ -206,9 +205,9 @@ class stock_coint_db_communicator(db_communicator):
             """
             cursor.execute(create_table_query)
             self.conn.commit()
-            print("stock_signal_api_output table created successfully.")
+            logging.info("stock_signal_api_output table created successfully.")
         except Exception as e:
-            print(f"Failed to create table: {str(e)}")
+            logging.error(f"Failed to create table: {str(e)}")
             self.conn.rollback()
         finally:
             cursor.close()
@@ -261,14 +260,13 @@ class stock_coint_db_communicator(db_communicator):
             """
             cursor.execute(insert_data_query)
             self.conn.commit()
-            print("stock_signal_api_output data inserted/updated successfully.")
+            logging.info("stock_signal_api_output data inserted/updated successfully.")
         except Exception as e:
-            print(f"Failed to insert/update data: {str(e)}")
+            logging.error(f"Failed to insert/update data: {str(e)}")
             self.conn.rollback()
         finally:
             cursor.close()
-            print("API data update process completed.")
-    
+            logging.info("API data update process completed.")
                      
 class stock_coint_by_segment_db_communicator(stock_coint_db_communicator):
     '''variation of stock_coint_db_communicator, with new method of ingesting input data'''
@@ -293,7 +291,6 @@ class stock_coint_by_segment_db_communicator(stock_coint_db_communicator):
         order by marketcapitalization desc, date
         """
         return pd.read_sql(query, self.conn)
-    
     
 class coin_coint_db_communicator(db_communicator):
     '''inherit db_communicator with custom crypto output table creation and output data insertion'''
@@ -331,9 +328,9 @@ class coin_coint_db_communicator(db_communicator):
             """
             cursor.execute(create_table_query)
             self.conn.commit()
-            print("coin_pairs_coint table created successfully.")
+            logging.info("coin_pairs_coint table created successfully.")
         except Exception as e:
-            print(f"Failed to create table: {str(e)}")
+            logging.error(f"Failed to create table: {str(e)}")
             self.conn.rollback()
         finally:
             cursor.close()
@@ -354,9 +351,9 @@ class coin_coint_db_communicator(db_communicator):
             for i in range(0, len(csv_as_tuple), chunk_size):
                 execute_values(cursor, insert_query, csv_as_tuple[i:i+chunk_size])
             self.conn.commit()
-            print(f"Inserted {len(csv_as_tuple)} rows into coin_pairs_coint table.")
+            logging.info(f"Inserted {len(csv_as_tuple)} rows into coin_pairs_coint table.")
         except Exception as e:
-            print(f"Failed to insert data: {e}")
+            logging.error(f"Failed to insert data: {e}")
             self.conn.rollback()
         finally:
             cursor.close()
