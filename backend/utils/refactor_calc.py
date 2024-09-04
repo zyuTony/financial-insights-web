@@ -3,13 +3,9 @@ import os
 import json
 import warnings
 import pandas as pd
-import numpy as np
 from statsmodels.tsa.stattools import coint
 import statsmodels.api as sm
 from tqdm import tqdm
-import psycopg2
-from psycopg2 import OperationalError
-from psycopg2.extras import execute_values
 from config import *
 import logging
 
@@ -183,6 +179,12 @@ class coint_signal_calculator(signal_calculator):
 
         try:
             ols_result = sm.OLS(series1, sm.add_constant(series2)).fit() 
+            
+            # Check if R-squared is valid
+            if np.isnan(ols_result.rsquared_adj) or np.isinf(ols_result.rsquared_adj):
+                logging.warning(f"Warning: Invalid R-squared for {name1} and {name2}")
+                return None
+            
             return {
                 'name1': name1, 
                 'name2': name2,

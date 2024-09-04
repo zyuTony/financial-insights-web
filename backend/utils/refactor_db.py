@@ -108,6 +108,7 @@ class stock_coint_db_communicator(db_communicator):
         insert_query = """
         INSERT INTO stock_pairs_coint (date, window_length, symbol1, symbol2, pvalue)
         VALUES %s
+        ON CONFLICT (date, window_length, symbol1, symbol2)
         DO UPDATE SET 
             pvalue = EXCLUDED.pvalue
         """
@@ -343,6 +344,7 @@ class coin_coint_db_communicator(db_communicator):
         insert_query = """
         INSERT INTO coin_pairs_coint (date, window_length, symbol1, symbol2, pvalue)
         VALUES %s
+        ON CONFLICT (date, window_length, symbol1, symbol2)
         DO UPDATE SET 
             pvalue = EXCLUDED.pvalue
         """
