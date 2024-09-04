@@ -44,17 +44,26 @@ class coin_gecko_daily_ohlc_api_getter(api_getter):
             "accept": "application/json",
             "x-cg-pro-api-key": self.api_key
         }
-        try:
-            response = requests.get(url, headers=headers)
-            data = response.json()
+        max_retries = 3
+        retry_delay = 5  # seconds
 
-            with open(self.overview_save_path, 'w') as file:
-                json.dump(data, file, indent=4)
-            
-            return data
-        except (ConnectionError, Timeout, TooManyRedirects) as e:
-            print(e)
-            return -1
+        for attempt in range(max_retries):
+            try:
+                response = requests.get(url, headers=headers)
+                response.raise_for_status()  # Raise an exception for bad status codes
+                data = response.json()
+
+                with open(self.overview_save_path, 'w') as file:
+                    json.dump(data, file, indent=4)
+                
+                return data
+            except (ConnectionError, Timeout, TooManyRedirects, requests.exceptions.RequestException) as e:
+                if attempt < max_retries - 1:
+                    logging.warning(f"Attempt {attempt + 1} failed: {e}. Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                else:
+                    logging.error(f"All {max_retries} attempts failed: {e}")
+                    return None
  
     def _get_download_symbol_list(self):
         # get top coins

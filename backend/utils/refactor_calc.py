@@ -8,6 +8,8 @@ import statsmodels.api as sm
 from tqdm import tqdm
 from config import *
 import logging
+import numpy as np
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -178,7 +180,9 @@ class coint_signal_calculator(signal_calculator):
             return None
 
         try:
-            ols_result = sm.OLS(series1, sm.add_constant(series2)).fit() 
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", message="divide by zero encountered in scalar divide")
+                ols_result = sm.OLS(series1, sm.add_constant(series2)).fit()
             
             # Check if R-squared is valid
             if np.isnan(ols_result.rsquared_adj) or np.isinf(ols_result.rsquared_adj):
