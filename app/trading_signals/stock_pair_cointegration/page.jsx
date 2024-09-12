@@ -14,7 +14,9 @@ export default function stock_pair_cointegration() {
   return (
     <div className="flex flex-col px-24 py-12 h-full w-full">
       {/* explain section */}
-      <h1 className="text-center text-3xl px-24 pb-6">Pairs Cointegration</h1>
+      <h1 className="text-center text-3xl px-24 pb-6">
+        Stock Pairs Cointegration
+      </h1>
       <div className="flex justify-center">
         <StockPairCointTable data={data} />
       </div>

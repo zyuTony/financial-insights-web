@@ -8,6 +8,27 @@ export async function GET() {
         recent_coint_pct: { gt: 0.3 },
         hist_coint_pct: { gt: 0.2 },
         r_squared: { gt: 0.5 },
+        NOT: {
+          // filter out naturally cointed pairs
+          OR: [
+            {
+              symbol2: {
+                contains: "ETH",
+              },
+            },
+            {
+              symbol2: {
+                contains: "BTC",
+              },
+            },
+            {
+              AND: [{ symbol1: "USDC" }, { symbol2: "USDT" }],
+            },
+            {
+              AND: [{ symbol1: "USDT" }, { symbol2: "USDC" }],
+            },
+          ],
+        },
       },
       orderBy: {
         most_recent_coint_pct: "desc",

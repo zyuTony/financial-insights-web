@@ -37,7 +37,7 @@ model stock_historical_price {
   close  Decimal  @db.Decimal
   volume BigInt
 
-  @@unique([symbol, date])
+  @@id([symbol, date])
 }
 
 model stock_pairs_coint {
@@ -163,9 +163,11 @@ model coin_signal {
 
 model coin_signal_api_output {
   symbol1               String   @db.VarChar(50)
-  market_cap_1          BigInt
+  name1                 String   @db.VarChar(50)
+  market_cap_1          BigInt?
   symbol2               String   @db.VarChar(50)
-  market_cap_2          BigInt
+  name2                 String   @db.VarChar(50)
+  market_cap_2          BigInt?
   most_recent_coint_pct Decimal? @db.Decimal
   recent_coint_pct      Decimal? @db.Decimal
   hist_coint_pct        Decimal? @db.Decimal
@@ -174,8 +176,7 @@ model coin_signal_api_output {
   ols_coeff             Decimal? @db.Decimal
   last_updated          DateTime @db.Timestamptz(6)
 
-  @@id([symbol1, market_cap_1, symbol2, market_cap_2])
-  @@unique([symbol1, market_cap_1, symbol2, market_cap_2])
+  @@id([symbol1, name1, symbol2, name2])
 }
 
 model ib_latest_trades {
@@ -217,5 +218,117 @@ model stock_signal_api_output {
   ols_coeff             Decimal? @db.Decimal
   last_updated          DateTime @db.Timestamptz(6)
 
-  @@unique([symbol1, symbol2])
+  @@id([symbol1, symbol2])
+}
+
+model backtest_exec_trades {
+  symbol           String   @db.VarChar(20)
+  date             DateTime @db.Timestamptz(6)
+  open             Decimal  @db.Decimal
+  high             Decimal  @db.Decimal
+  low              Decimal  @db.Decimal
+  close            Decimal  @db.Decimal
+  volume           Decimal  @db.Decimal
+  rsi              Decimal? @db.Decimal
+  rsi_2            Decimal? @db.Decimal
+  volume_short_sma Decimal? @db.Decimal
+  volume_long_sma  Decimal? @db.Decimal
+  close_sma        Decimal? @db.Decimal
+
+  @@id([symbol, date])
+}
+
+model backtest_price {
+  symbol           String   @db.VarChar(20)
+  date             DateTime @db.Timestamptz(6)
+  open             Decimal  @db.Decimal
+  high             Decimal  @db.Decimal
+  low              Decimal  @db.Decimal
+  close            Decimal  @db.Decimal
+  volume           Decimal  @db.Decimal
+  rsi              Decimal? @db.Decimal
+  rsi_2            Decimal? @db.Decimal
+  volume_short_sma Decimal? @db.Decimal
+  volume_long_sma  Decimal? @db.Decimal
+  close_sma        Decimal? @db.Decimal
+
+  @@id([symbol, date])
+}
+
+model backtest_trades {
+  symbol String   @db.VarChar(20)
+  date   DateTime @db.Timestamptz(6)
+  action String   @db.VarChar(4)
+  price  Decimal  @db.Decimal
+
+  @@id([symbol, date])
+}
+
+model binance_coin_4hours_historical_price {
+  symbol String   @db.VarChar(20)
+  date   DateTime @db.Timestamptz(6)
+  open   Decimal  @db.Decimal
+  high   Decimal  @db.Decimal
+  low    Decimal  @db.Decimal
+  close  Decimal  @db.Decimal
+  volume Decimal  @db.Decimal
+
+  @@id([symbol, date])
+}
+
+model binance_coin_5mins_historical_price {
+  symbol String   @db.VarChar(20)
+  date   DateTime @db.Timestamptz(6)
+  open   Decimal  @db.Decimal
+  high   Decimal  @db.Decimal
+  low    Decimal  @db.Decimal
+  close  Decimal  @db.Decimal
+  volume Decimal  @db.Decimal
+
+  @@id([symbol, date])
+}
+
+model binance_coin_historical_price {
+  symbol String   @db.VarChar(20)
+  date   DateTime @db.Timestamptz(6)
+  open   Decimal  @db.Decimal
+  high   Decimal  @db.Decimal
+  low    Decimal  @db.Decimal
+  close  Decimal  @db.Decimal
+  volume Decimal  @db.Decimal
+
+  @@id([symbol, date])
+}
+
+model binance_coin_hourly_historical_price {
+  symbol String   @db.VarChar(20)
+  date   DateTime @db.Timestamptz(6)
+  open   Decimal  @db.Decimal
+  high   Decimal  @db.Decimal
+  low    Decimal  @db.Decimal
+  close  Decimal  @db.Decimal
+  volume Decimal  @db.Decimal
+
+  @@id([symbol, date])
+}
+
+model coin_hourly_historical_price {
+  symbol String   @db.VarChar(20)
+  date   DateTime @db.Timestamptz(6)
+  open   Decimal  @db.Decimal
+  high   Decimal  @db.Decimal
+  low    Decimal  @db.Decimal
+  close  Decimal  @db.Decimal
+
+  @@id([symbol, date])
+}
+
+model coin_stonewell_signal {
+  symbol               String   @id @db.VarChar(50)
+  close_above_sma      Boolean
+  close_above_sma_pct  Decimal  @db.Decimal
+  rsi_above_sma        Boolean
+  short_vol_above_long Boolean
+  death_cross          Boolean
+  last_updated         DateTime @db.Timestamptz(6)
 }
