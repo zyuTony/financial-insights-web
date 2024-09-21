@@ -13,7 +13,7 @@ export default function Home() {
   // Data is already prepared in the API response
   const { priceData, tradesData } = data;
   // console.log(priceData);
-  console.log(tradesData);
+  // console.log(tradesData);
   return (
     <div className="pl-4 h-auto w-auto">
       <BackTestTradesChart priceData={priceData} tradesData={tradesData} />

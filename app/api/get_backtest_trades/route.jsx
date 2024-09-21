@@ -13,7 +13,6 @@ export async function GET() {
         date: "asc",
       },
     });
-
     const priceData = backtest_prices.map((price) => ({
       date: price.date.toISOString().split(".")[0],
       open: parseFloat(price.open),
@@ -27,6 +26,12 @@ export async function GET() {
       close_SMA: parseFloat(price.close_sma),
       volume_short_sma: parseFloat(price.volume_short_sma),
       volume_long_sma: parseFloat(price.volume_long_sma),
+      EMA_12: parseFloat(price.ema_12),
+      EMA_26: parseFloat(price.ema_26),
+      kc_upper: parseFloat(price.kc_upper),
+      kc_middle: parseFloat(price.kc_middle),
+      kc_lower: parseFloat(price.kc_lower),
+      kc_position: parseFloat(price.kc_position),
     }));
 
     const tradesData = backtest_trades.map((trade) => ({

@@ -13,7 +13,11 @@ const chartOptions = {
   },
   crosshair: { mode: "normal" },
   rightPriceScale: { borderColor: "rgba(197, 203, 206, 1)" },
-  timeScale: { borderColor: "rgba(197, 203, 206, 1)" },
+  timeScale: {
+    borderColor: "rgba(197, 203, 206, 1)",
+    timeVisible: true,
+    secondsVisible: false,
+  },
 };
 
 const useChartData = (priceData, tradesData) => {
@@ -21,7 +25,7 @@ const useChartData = (priceData, tradesData) => {
     if (!priceData || !tradesData) return {};
 
     const formattedPriceData = priceData.reduce((acc, data) => {
-      const time = Math.floor(new Date(data.date).getTime() / 1000); // Convert to seconds
+      const time = new Date(data.date).getTime() / 1000; // Convert to seconds
       if (!acc.some((item) => item.time === time)) {
         acc.push({ ...data, time });
       }
@@ -75,10 +79,58 @@ const useChartData = (priceData, tradesData) => {
         value: parseFloat(data.RSI_2),
       }));
 
+    const ema_12 = formattedPriceData
+      .filter((data) => data.EMA_12 !== null && !isNaN(data.EMA_12))
+      .map((data) => ({
+        time: data.time,
+        value: parseFloat(data.EMA_12),
+      }));
+
+    const ema_26 = formattedPriceData
+      .filter((data) => data.EMA_26 !== null && !isNaN(data.EMA_26))
+      .map((data) => ({
+        time: data.time,
+        value: parseFloat(data.EMA_26),
+      }));
+
+    const macd = formattedPriceData
+      .filter(
+        (data) =>
+          data.EMA_12 !== null &&
+          data.EMA_26 !== null &&
+          !isNaN(data.EMA_12) &&
+          !isNaN(data.EMA_26)
+      )
+      .map((data) => ({
+        time: data.time,
+        value: parseFloat(data.EMA_12) - parseFloat(data.EMA_26),
+      }));
+
+    const kc_upper = formattedPriceData
+      .filter((data) => data.kc_upper !== null && !isNaN(data.kc_upper))
+      .map((data) => ({
+        time: data.time,
+        value: parseFloat(data.kc_upper),
+      }));
+
+    const kc_lower = formattedPriceData
+      .filter((data) => data.kc_lower !== null && !isNaN(data.kc_lower))
+      .map((data) => ({
+        time: data.time,
+        value: parseFloat(data.kc_lower),
+      }));
+
+    const kc_position = formattedPriceData
+      .filter((data) => data.kc_position !== null && !isNaN(data.kc_position))
+      .map((data) => ({
+        time: data.time,
+        value: parseFloat(data.kc_position),
+      }));
+
     const formattedTradesData = tradesData
       .map((trade) => ({
         ...trade,
-        time: Math.floor(new Date(trade.date).getTime() / 1000),
+        time: new Date(trade.date).getTime() / 1000,
       }))
       .sort((a, b) => new Date(a.date) - new Date(b.date));
 
@@ -117,6 +169,12 @@ const useChartData = (priceData, tradesData) => {
       volume,
       volume_short_sma,
       volume_long_sma,
+      ema_12,
+      ema_26,
+      macd,
+      kc_upper,
+      kc_lower,
+      kc_position,
     };
   }, [priceData, tradesData]);
 };
@@ -132,6 +190,12 @@ const BackTestTradesChart = ({ priceData, tradesData }) => {
     volume,
     volume_short_sma,
     volume_long_sma,
+    ema_12,
+    ema_26,
+    macd,
+    kc_upper,
+    kc_lower,
+    kc_position,
   } = useChartData(priceData, tradesData);
 
   useEffect(() => {
@@ -155,6 +219,23 @@ const BackTestTradesChart = ({ priceData, tradesData }) => {
     const smaSeries = mainChart.addLineSeries({
       color: "rgba(4, 111, 232, 1)",
       lineWidth: 2,
+    });
+
+    const kcUpperSeries = mainChart.addLineSeries({
+      color: "rgba(76, 175, 80, 1)",
+      lineWidth: 1,
+    });
+
+    const kcLowerSeries = mainChart.addLineSeries({
+      color: "rgba(76, 175, 80, 1)",
+      lineWidth: 1,
+    });
+
+    // Create a hidden series for KC Position to update legend
+    const kcPositionSeries = mainChart.addLineSeries({
+      color: "rgba(255, 140, 0, 1)",
+      lineWidth: 2,
+      visible: false,
     });
 
     const rsiChart = createChart(chartContainer, {
@@ -187,20 +268,39 @@ const BackTestTradesChart = ({ priceData, tradesData }) => {
       lineWidth: 2,
     });
 
+    const macdChart = createChart(chartContainer, {
+      ...chartOptions,
+      height: 150,
+    });
+    const macdSeries = macdChart.addHistogramSeries({
+      color: "rgba(4, 111, 232, 1)",
+      priceFormat: {
+        type: "volume",
+      },
+      priceScaleId: "",
+    });
+
     mainSeries.setData(formattedPriceData);
     smaSeries.setData(price_sma);
+    kcUpperSeries.setData(kc_upper);
+    kcLowerSeries.setData(kc_lower);
+    kcPositionSeries.setData(kc_position);
     rsiSeries.setData(rsi);
     rsi2Series.setData(rsi_2);
     mainSeries.setMarkers(allMarkers);
     // volumeSeries.setData(volume);
     volumeShortSMASeries.setData(volume_short_sma);
     volumeLongSMASeries.setData(volume_long_sma);
+    macdSeries.setData(macd);
 
     // Add legend to main chart
     const legend = document.createElement("div");
     legend.style = `position: absolute; left: 12px; top: 12px; z-index: 1; font-size: 14px; font-family: sans-serif; line-height: 18px; font-weight: 300; background-color: rgba(255, 255, 255, 0.23); padding: 4px;`;
     legend.innerHTML = `<div>OHLC: <span style="color: #26a69a;">O</span> <span id="open"></span> <span style="color: #26a69a;">H</span> <span id="high"></span> <span style="color: #ef5350;">L</span> <span id="low"></span> <span style="color: #ef5350;">C</span> <span id="close"></span></div>
-      <div style="color: rgba(4, 111, 232, 1);">SMA: <span id="smaValue"></span></div>`;
+      <div style="color: rgba(4, 111, 232, 1);">SMA: <span id="smaValue"></span></div>
+      <div style="color: rgba(76, 175, 80, 1);">KC Upper: <span id="kcUpperValue"></span></div>
+      <div style="color: rgba(76, 175, 80, 1);">KC Lower: <span id="kcLowerValue"></span></div>
+      <div style="color: rgba(255, 140, 0, 1);">KC Position: <span id="kcPositionValue"></span></div>`;
     chartContainer.appendChild(legend);
 
     // Add legend to RSI chart
@@ -218,11 +318,18 @@ const BackTestTradesChart = ({ priceData, tradesData }) => {
         <div style="color: rgba(156, 39, 176, 1);">Long SMA: <span id="volumeLongSMAValue"></span></div>`;
     chartContainer.appendChild(volumeLegend);
 
+    // Add legend to MACD chart
+    const macdLegend = document.createElement("div");
+    macdLegend.style = `position: absolute; left: 12px; top: 740px; z-index: 1; font-size: 14px; font-family: sans-serif; line-height: 18px; font-weight: 300; background-color: rgba(255, 255, 255, 0.23); padding: 4px;`;
+    macdLegend.innerHTML = `<div style="color: #26a69a;">MACD: <span id="macdValue"></span></div>`;
+    chartContainer.appendChild(macdLegend);
+
     mainChart.timeScale().fitContent();
     rsiChart.timeScale().fitContent();
     volumeChart.timeScale().fitContent();
+    macdChart.timeScale().fitContent();
 
-    // Sync scales for the 3 charts
+    // Sync scales for the 4 charts
     const syncTimeScales = (sourceChart, targetCharts) => {
       sourceChart.timeScale().subscribeVisibleTimeRangeChange(() => {
         const timeRange = sourceChart.timeScale().getVisibleRange();
@@ -232,15 +339,19 @@ const BackTestTradesChart = ({ priceData, tradesData }) => {
       });
     };
 
-    syncTimeScales(mainChart, [rsiChart, volumeChart]);
-    syncTimeScales(rsiChart, [mainChart, volumeChart]);
-    syncTimeScales(volumeChart, [mainChart, rsiChart]);
+    syncTimeScales(mainChart, [rsiChart, volumeChart, macdChart]);
+    syncTimeScales(rsiChart, [mainChart, volumeChart, macdChart]);
+    syncTimeScales(volumeChart, [mainChart, rsiChart, macdChart]);
+    syncTimeScales(macdChart, [mainChart, rsiChart, volumeChart]);
 
     // Update legend values on crosshair move
     mainChart.subscribeCrosshairMove((param) => {
       if (param.time) {
         const data = param.seriesData.get(mainSeries);
         const smaData = param.seriesData.get(smaSeries);
+        const kcUpperData = param.seriesData.get(kcUpperSeries);
+        const kcLowerData = param.seriesData.get(kcLowerSeries);
+        const kcPositionData = param.seriesData.get(kcPositionSeries);
         if (data) {
           document.getElementById("open").textContent = data.open.toFixed(2);
           document.getElementById("high").textContent = data.high.toFixed(2);
@@ -250,6 +361,18 @@ const BackTestTradesChart = ({ priceData, tradesData }) => {
         if (smaData) {
           document.getElementById("smaValue").textContent =
             smaData.value.toFixed(2);
+        }
+        if (kcUpperData) {
+          document.getElementById("kcUpperValue").textContent =
+            kcUpperData.value.toFixed(2);
+        }
+        if (kcLowerData) {
+          document.getElementById("kcLowerValue").textContent =
+            kcLowerData.value.toFixed(2);
+        }
+        if (kcPositionData) {
+          document.getElementById("kcPositionValue").textContent =
+            kcPositionData.value.toFixed(2);
         }
       }
     });
@@ -271,13 +394,8 @@ const BackTestTradesChart = ({ priceData, tradesData }) => {
 
     volumeChart.subscribeCrosshairMove((param) => {
       if (param.time) {
-        const volumeData = param.seriesData.get(volumeSeries);
         const volumeShortSMAData = param.seriesData.get(volumeShortSMASeries);
         const volumeLongSMAData = param.seriesData.get(volumeLongSMASeries);
-        if (volumeData) {
-          document.getElementById("volumeValue").textContent =
-            volumeData.value.toFixed(2);
-        }
         if (volumeShortSMAData) {
           document.getElementById("volumeShortSMAValue").textContent =
             volumeShortSMAData.value.toFixed(2);
@@ -289,10 +407,21 @@ const BackTestTradesChart = ({ priceData, tradesData }) => {
       }
     });
 
+    macdChart.subscribeCrosshairMove((param) => {
+      if (param.time) {
+        const macdData = param.seriesData.get(macdSeries);
+        if (macdData) {
+          document.getElementById("macdValue").textContent =
+            macdData.value.toFixed(2);
+        }
+      }
+    });
+
     return () => {
       mainChart.remove();
       rsiChart.remove();
       volumeChart.remove();
+      macdChart.remove();
     };
   }, [
     formattedPriceData,
