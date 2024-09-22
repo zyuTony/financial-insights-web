@@ -221,36 +221,19 @@ model stock_signal_api_output {
   @@id([symbol1, symbol2])
 }
 
-model backtest_price {
-  symbol           String   @db.VarChar(20)
-  date             DateTime @db.Timestamptz(6)
-  open             Decimal? @db.Decimal
-  high             Decimal? @db.Decimal
-  low              Decimal? @db.Decimal
-  close            Decimal? @db.Decimal
-  volume           Decimal? @db.Decimal
-  rsi              Decimal? @db.Decimal
-  rsi_2            Decimal? @db.Decimal
-  volume_short_sma Decimal? @db.Decimal
-  volume_long_sma  Decimal? @db.Decimal
-  close_sma        Decimal? @db.Decimal
-  ema_12           Decimal? @db.Decimal
-  ema_26           Decimal? @db.Decimal
-  kc_upper         Decimal? @db.Decimal
-  kc_lower         Decimal? @db.Decimal
-  kc_middle        Decimal? @db.Decimal
-  kc_position      Decimal? @db.Decimal
-
-  @@id([symbol, date])
-}
-
 model backtest_trades {
-  symbol String   @db.VarChar(20)
-  date   DateTime @db.Timestamptz(6)
-  action String   @db.VarChar(4)
-  price  Decimal  @db.Decimal
+  symbol      String   @db.VarChar(20)
+  strat_name  String   @db.VarChar(50)
+  start_date  DateTime @db.Date
+  end_date    DateTime @db.Date
+  trade_df_tf String   @db.VarChar(10)
+  indi_df_tf  String   @db.VarChar(10)
+  param_dict  Json
+  date        DateTime @db.Timestamptz(6)
+  action      String   @db.VarChar(4)
+  price       Decimal  @db.Decimal
 
-  @@id([symbol, date])
+  @@id([symbol, strat_name, start_date, end_date, trade_df_tf, indi_df_tf, param_dict, date])
 }
 
 model binance_coin_4hours_historical_price {
@@ -322,7 +305,52 @@ model coin_stonewell_signal {
   last_updated         DateTime @db.Timestamptz(6)
 }
 
-model backtest_tuning_rolling_results {
+model backtest_charts {
+  symbol           String   @db.VarChar(20)
+  strat_name       String   @db.VarChar(50)
+  start_date       DateTime @db.Date
+  end_date         DateTime @db.Date
+  trade_df_tf      String   @db.VarChar(10)
+  indi_df_tf       String   @db.VarChar(10)
+  param_dict       Json
+  date             DateTime @db.Timestamptz(6)
+  open             Decimal? @db.Decimal
+  high             Decimal? @db.Decimal
+  low              Decimal? @db.Decimal
+  close            Decimal? @db.Decimal
+  volume           Decimal? @db.Decimal
+  rsi              Decimal? @db.Decimal
+  rsi_2            Decimal? @db.Decimal
+  volume_short_sma Decimal? @db.Decimal
+  volume_long_sma  Decimal? @db.Decimal
+  close_sma        Decimal? @db.Decimal
+  ema_12           Decimal? @db.Decimal
+  ema_26           Decimal? @db.Decimal
+  kc_upper         Decimal? @db.Decimal
+  kc_lower         Decimal? @db.Decimal
+  kc_middle        Decimal? @db.Decimal
+  kc_position      Decimal? @db.Decimal
+
+  @@id([symbol, strat_name, start_date, end_date, trade_df_tf, indi_df_tf, param_dict, date])
+}
+
+model backtest_peformances {
+  symbol                   String   @db.VarChar(20)
+  strat_name               String   @db.VarChar(50)
+  start_date               DateTime @db.Date
+  end_date                 DateTime @db.Date
+  trade_df_tf              String   @db.VarChar(10)
+  indi_df_tf               String   @db.VarChar(10)
+  param_dict               Json
+  rolling_30d_start        DateTime @db.Date
+  rolling_30d_end          DateTime @db.Date
+  rolling_baseline_chg_pct Decimal  @db.Decimal
+  rolling_profit_pct       Decimal  @db.Decimal
+
+  @@id([symbol, strat_name, start_date, end_date, trade_df_tf, indi_df_tf, param_dict, rolling_30d_start, rolling_30d_end])
+}
+
+model backtest_performances {
   symbol                   String   @db.VarChar(20)
   strat_name               String   @db.VarChar(50)
   start_date               DateTime @db.Date

@@ -2,17 +2,32 @@ import { prisma } from "../../lib/prisma";
 
 export async function GET() {
   try {
-    const backtest_rolling_result =
-      await prisma.backtest_tuning_rolling_results.findMany({
-        orderBy: [
-          { strat_name: "asc" },
-          { start_date: "asc" },
-          { end_date: "asc" },
-          { rolling_30d_end: "asc" },
-        ],
-      });
+    const backtestPerformances = await prisma.backtest_performances.findMany({
+      orderBy: [
+        { symbol: "asc" },
+        { strat_name: "asc" },
+        { start_date: "asc" },
+        { rolling_30d_start: "asc" },
+      ],
+    });
 
-    const tuningResult = backtest_rolling_result.map((result) => ({
+    const backtestCharts = await prisma.backtest_charts.findMany({
+      orderBy: [
+        { symbol: "asc" },
+        { strat_name: "asc" },
+        { start_date: "asc" },
+      ],
+    });
+
+    const backtestTrades = await prisma.backtest_trades.findMany({
+      orderBy: [
+        { symbol: "asc" },
+        { strat_name: "asc" },
+        { start_date: "asc" },
+      ],
+    });
+
+    const backtestPerformancesOutput = backtestPerformances.map((result) => ({
       symbol: result.symbol,
       strat_name: result.strat_name,
       start_date: result.start_date.toISOString().split(".")[0],
@@ -26,10 +41,46 @@ export async function GET() {
       profit_pct: result.rolling_profit_pct,
     }));
 
-    return new Response(JSON.stringify({ tuningResult }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    const backtestChartsOutput = backtestCharts.map((result) => ({
+      symbol: result.symbol,
+      strat_name: result.strat_name,
+      start_date: result.start_date.toISOString().split(".")[0],
+      end_date: result.end_date.toISOString().split(".")[0],
+      trade_df_tf: result.trade_df_tf,
+      indi_df_tf: result.indi_df_tf,
+      params: result.param_dict,
+      date: result.date.toISOString().split(".")[0],
+      open: parseFloat(result.open),
+      high: parseFloat(result.high),
+      low: parseFloat(result.low),
+      close: parseFloat(result.close),
+      volume: parseFloat(result.volume),
+    }));
+
+    const backtestTradesOutput = backtestTrades.map((result) => ({
+      symbol: result.symbol,
+      strat_name: result.strat_name,
+      start_date: result.start_date.toISOString().split(".")[0],
+      end_date: result.end_date.toISOString().split(".")[0],
+      trade_df_tf: result.trade_df_tf,
+      indi_df_tf: result.indi_df_tf,
+      params: result.param_dict,
+      date: result.date.toISOString().split(".")[0],
+      action: result.action,
+      price: parseFloat(result.price),
+    }));
+
+    return new Response(
+      JSON.stringify({
+        backtestPerformancesOutput,
+        backtestChartsOutput,
+        backtestTradesOutput,
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     return new Response(
       JSON.stringify({

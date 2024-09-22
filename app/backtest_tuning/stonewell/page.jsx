@@ -14,12 +14,20 @@ export default function Home() {
   if (!data) return <div className="px-10">loading...</div>;
 
   // Data is already prepared in the API response
-  const { tuningResult } = data;
+  const {
+    backtestPerformancesOutput,
+    backtestChartsOutput,
+    backtestTradesOutput,
+  } = data;
+  // console.log(data);
 
-  // Extract unique symbols and strat_names
-  const symbols = [...new Set(tuningResult.map((item) => item.symbol))];
-  const stratNames = [...new Set(tuningResult.map((item) => item.strat_name))];
-
+  // Handle symbol strat selection on/off
+  const symbols = [
+    ...new Set(backtestPerformancesOutput.map((item) => item.symbol)),
+  ];
+  const stratNames = [
+    ...new Set(backtestPerformancesOutput.map((item) => item.strat_name)),
+  ];
   const handleSymbolChange = (symbol) => {
     setSelectedSymbols((prev) =>
       prev.includes(symbol)
@@ -27,15 +35,26 @@ export default function Home() {
         : [...prev, symbol]
     );
   };
-
   const handleStratChange = (strat) => {
     setSelectedStrats((prev) =>
       prev.includes(strat) ? prev.filter((s) => s !== strat) : [...prev, strat]
     );
   };
 
-  // Filter tuningResult based on selections
-  const filteredResult = tuningResult.filter(
+  // Filter based on selections
+  const selectedPerfomancesOutput = backtestPerformancesOutput.filter(
+    (item) =>
+      (selectedSymbols.length === 0 || selectedSymbols.includes(item.symbol)) &&
+      (selectedStrats.length === 0 || selectedStrats.includes(item.strat_name))
+  );
+
+  const selectedChartsOutput = backtestChartsOutput.filter(
+    (item) =>
+      (selectedSymbols.length === 0 || selectedSymbols.includes(item.symbol)) &&
+      (selectedStrats.length === 0 || selectedStrats.includes(item.strat_name))
+  );
+
+  const selectedTradesOutput = backtestTradesOutput.filter(
     (item) =>
       (selectedSymbols.length === 0 || selectedSymbols.includes(item.symbol)) &&
       (selectedStrats.length === 0 || selectedStrats.includes(item.strat_name))
@@ -76,7 +95,9 @@ export default function Home() {
         </div>
       </div>
       <BackTestTuningResult
-        tuningResult={filteredResult}
+        backtestPerformancesOutput={selectedPerfomancesOutput}
+        backtestChartsOutput={selectedChartsOutput}
+        backtestTradesOutput={selectedTradesOutput}
         selectedSymbols={selectedSymbols}
         selectedStrats={selectedStrats}
       />
