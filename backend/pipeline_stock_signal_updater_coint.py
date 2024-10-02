@@ -1,6 +1,6 @@
 from config import *
-from utils.refactor_calc import *
-from utils.refactor_db import *
+from utils.refactor_signal_calculator import *
+from utils.refactor_db_signal_updater import *
 from dotenv import load_dotenv
 import os
 import warnings
@@ -31,7 +31,7 @@ checkpoint_file_path = CHECKPOINT_JSON_PATH+'/calc_pipeline.json'
 coint_csv_path = COINT_CSV_PATH+'/calc_pipeline_coint.csv'
 signal_csv_path = SIGNAL_CSV_PATH+'/calc_pipeline_signal.csv'
 
-db = stock_coint_db_communicator(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)
+db = stock_coint_db_signal_updater(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)
 db.connect()
 df = db.fetch_input_data(top_n_tickers=80)
 price_df = db.pivot_price_data(df)

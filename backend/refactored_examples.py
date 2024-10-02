@@ -1,10 +1,9 @@
 from config import *
-from utils.db_utils import *
-from utils.gecko_utils import *
 from dotenv import load_dotenv
 import os
-from utils.refactor_data_updater import *
-from utils.refactor_api_getter import *
+from utils.refactor_db_data_updater import *
+from utils.refactor_data_api_getter import *
+from binance.client import Client
 
 load_dotenv(override=True)
 bn_api_key = os.getenv('BINANCE_API')  
@@ -12,11 +11,19 @@ bn_api_secret = os.getenv('BINANCE_SECRET')
 cmc_api_key = os.getenv('CMC_API')  
 avan_api_key = os.getenv('ALPHA_VANTAGE_PREM_API') 
 gc_api_key = os.getenv('GECKO_API') 
+
 DB_USERNAME = os.getenv('RDS_USERNAME') 
 DB_PASSWORD = os.getenv('RDS_PASSWORD') 
 DB_HOST = os.getenv('RDS_ENDPOINT') 
 DB_NAME = 'financial_data'
 
+# bn_data = binance_ohlc_api_getter(api_key=bn_api_key,
+#                              api_secret=bn_api_secret,
+#                              data_save_path=BN_JSON_PATH,
+#                              interval=Client.KLINE_INTERVAL_1DAY,
+#                              start_date='1 Jan, 2024',
+#                              end_date='6 Aug, 2024')
+# bn_data._download_single_symbol('BTC')
         
 # db = coin_gecko_OHLC_db_refresher(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD, "coin_historical_price")
 # db.connect()

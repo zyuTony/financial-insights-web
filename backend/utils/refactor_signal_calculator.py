@@ -10,7 +10,6 @@ from config import *
 import logging
 import numpy as np
 
-
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s | %(levelname)8s | %(message)s',
@@ -20,10 +19,8 @@ logging.basicConfig(
 '''CALCULATOR'''
 class signal_calculator(ABC):
     
-    def __init__(self, price_df, checkpoint_file_path, output_data_path, output_signal_path):
+    def __init__(self, price_df, output_signal_path):
         self.price_df = price_df
-        self.checkpoint_file_path = checkpoint_file_path
-        self.output_data_path = output_data_path
         self.output_signal_path = output_signal_path
         
     @abstractmethod
@@ -31,11 +28,68 @@ class signal_calculator(ABC):
         pass
     
     @abstractmethod
-    def calculate_signal(self, coint_df):
+    def calculate_signal(self, output_df):
         pass
 
+class stonewell_signal_calculator(signal_calculator):
+    
+    CLOSE_SMA_PERIODS = [20, 50, 100, 200]
+    VOLUME_SMA_PERIODS = [7, 14, 30]
+    RSI_PERIOD = 14
+    RSI_SMA_PERIODS = [20, 50]
+
+    def _calculate_rsi(self, data, period):
+        delta = data.diff()
+        gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+        rs = gain / loss
+        return 100 - (100 / (1 + rs))
+        
+    def calculate_data(self):
+        df = self.price_df.copy()
+        
+        # Calculate Close SMAs
+        for period in self.CLOSE_SMA_PERIODS:
+            df[f'close_sma_{period}'] = df.groupby('symbol')['close'].transform(lambda x: x.rolling(window=period).mean())
+        
+        # Calculate Volume SMAs
+        for period in self.VOLUME_SMA_PERIODS:
+            df[f'volume_sma_{period}'] = df.groupby('symbol')['volume'].transform(lambda x: x.rolling(window=period).mean())
+        
+        df['rsi_14'] = df.groupby('symbol')['close'].transform(lambda x: self._calculate_rsi(x, self.RSI_PERIOD))
+        
+        # Calculate RSI SMAs
+        for period in self.RSI_SMA_PERIODS:
+            df[f'rsi_14_sma_{period}'] = df.groupby('symbol')['rsi_14'].transform(lambda x: x.rolling(window=period).mean())
+        
+        return df
+
+    def calculate_signal(self, output_df):
+        latest_data = output_df.groupby('symbol').last().reset_index()
+        signals = []
+        last_updated = latest_data['date'].max()
+        
+        for _, row in latest_data.iterrows():
+            signal = {
+                'symbol': row['symbol'],
+                'close_above_sma': row['close'] > row['close_sma_20'],
+                'close_above_sma_pct': (row['close'] - row['close_sma_20']) / row['close_sma_20'] * 100,  # Percentage above SMA
+                'rsi_above_sma': row['rsi_14'] > row['rsi_14_sma_20'],
+                'short_vol_above_long': row['volume_sma_7'] > row['volume_sma_30'],
+                'death_cross': row['close_sma_200'] > row['close_sma_50'],
+                'last_updated': last_updated
+            }
+            signals.append(signal)
+        
+        return pd.DataFrame(signals)
+
+
 class coint_signal_calculator(signal_calculator):
-  
+    def __init__(self, price_df, checkpoint_file_path, output_data_path, output_signal_path):
+        super().__init__(price_df, output_signal_path)
+        self.checkpoint_file_path = checkpoint_file_path
+        self.output_data_path = output_data_path 
+        
     def _rolling_cointegration(self, name1, data1, name2, data2, window_length):
         warnings.filterwarnings("ignore", category=sm.tools.sm_exceptions.CollinearityWarning)
         if len(data1) < window_length or len(data1) != len(data2):
@@ -223,9 +277,9 @@ class coint_signal_calculator(signal_calculator):
             
         return pd.DataFrame(result)
     
-    def calculate_signal(self, coint_df):
+    def calculate_signal(self, output_df):
         # rolling coint scores
-        signal_df = self._coint_pct_eval(coint_df, HIST_WINDOW_SIG_EVAL, RECENT_WINDOW_SIG_EVAL)
+        signal_df = self._coint_pct_eval(output_df, HIST_WINDOW_SIG_EVAL, RECENT_WINDOW_SIG_EVAL)
 
         # ols params for trading spread
         ols_df = self._get_multi_pairs_ols_coeff(self.price_df, signal_df['name'])
@@ -236,25 +290,3 @@ class coint_signal_calculator(signal_calculator):
         results.to_csv(self.output_signal_path, index=False)
         # reorder the data
         return results
- 
- 
-        query = f"""
-        WITH ranked_stocks AS (
-        SELECT symbol, sector, marketcapitalization,
-        ROW_NUMBER() OVER (PARTITION BY sector ORDER BY marketcapitalization DESC) AS rn
-        FROM stock_overview
-        WHERE marketcapitalization IS NOT NULL),
-        top_stocks_by_sector as (
-        SELECT symbol, sector, marketcapitalization
-        FROM ranked_stocks
-        WHERE rn <= {top_n_tickers_by_sectors}
-        ORDER BY sector, marketcapitalization DESC)
-
-        select b.sector, a.*
-        from stock_historical_price a 
-        join top_stocks_by_sector b 
-        on a.symbol=b.symbol
-        where date >= '2023-01-01'
-        order by marketcapitalization desc, date
-        """
-        return pd.read_sql(query, self.conn)

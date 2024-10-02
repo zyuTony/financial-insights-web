@@ -2,8 +2,8 @@ from config import *
 from dotenv import load_dotenv
 import os
 from datetime import datetime, timedelta
-from utils.refactor_data_updater import *
-from utils.refactor_api_getter import *
+from utils.refactor_db_data_updater import *
+from utils.refactor_data_api_getter import *
 
 load_dotenv(override=True)
 gc_api_key = os.getenv('GECKO_API') 

@@ -558,3 +558,136 @@ class avan_stock_overview_db_refresher(db_refresher):
             logging.debug(f"Data transformation failed for {file_path}: {e}")
             return None
       
+class avan_stock_balance_sheet_db_refresher(db_refresher):
+    '''handle all data insertion from OHLC data via alpha vantage api'''
+    def __init__(self, *args):
+        super().__init__(*args)
+        
+        self.table_creation_script = f"""
+        CREATE TABLE IF NOT EXISTS {self.table_name} (
+            symbol VARCHAR(10) NOT NULL,
+            fiscal_date_ending DATE NOT NULL,
+            reported_currency VARCHAR(10) NOT NULL,
+            gross_profit NUMERIC,
+            total_revenue NUMERIC,
+            cost_of_revenue NUMERIC,
+            cost_of_goods_and_services_sold NUMERIC,
+            operating_income NUMERIC,
+            selling_general_and_administrative NUMERIC,
+            research_and_development NUMERIC,
+            operating_expenses NUMERIC,
+            investment_income_net NUMERIC,
+            net_interest_income NUMERIC,
+            interest_income NUMERIC,
+            interest_expense NUMERIC,
+            non_interest_income NUMERIC,
+            other_non_operating_income NUMERIC,
+            depreciation NUMERIC,
+            depreciation_and_amortization NUMERIC,
+            income_before_tax NUMERIC,
+            income_tax_expense NUMERIC,
+            interest_and_debt_expense NUMERIC,
+            net_income_from_continuing_operations NUMERIC,
+            comprehensive_income_net_of_tax NUMERIC,
+            ebit NUMERIC,
+            ebitda NUMERIC,
+            net_income NUMERIC,
+            PRIMARY KEY (symbol, fiscal_date_ending)
+        );
+        """
+        
+        self.data_insertion_script = f"""
+        INSERT INTO {self.table_name} (
+            symbol, fiscal_date_ending, reported_currency, gross_profit, total_revenue, 
+            cost_of_revenue, cost_of_goods_and_services_sold, operating_income, 
+            selling_general_and_administrative, research_and_development, operating_expenses, 
+            investment_income_net, net_interest_income, interest_income, interest_expense, 
+            non_interest_income, other_non_operating_income, depreciation, 
+            depreciation_and_amortization, income_before_tax, income_tax_expense, 
+            interest_and_debt_expense, net_income_from_continuing_operations, 
+            comprehensive_income_net_of_tax, ebit, ebitda, net_income
+        )
+        VALUES %s
+        ON CONFLICT (symbol, fiscal_date_ending)
+        DO UPDATE SET 
+            reported_currency = EXCLUDED.reported_currency,
+            gross_profit = EXCLUDED.gross_profit,
+            total_revenue = EXCLUDED.total_revenue,
+            cost_of_revenue = EXCLUDED.cost_of_revenue,
+            cost_of_goods_and_services_sold = EXCLUDED.cost_of_goods_and_services_sold,
+            operating_income = EXCLUDED.operating_income,
+            selling_general_and_administrative = EXCLUDED.selling_general_and_administrative,
+            research_and_development = EXCLUDED.research_and_development,
+            operating_expenses = EXCLUDED.operating_expenses,
+            investment_income_net = EXCLUDED.investment_income_net,
+            net_interest_income = EXCLUDED.net_interest_income,
+            interest_income = EXCLUDED.interest_income,
+            interest_expense = EXCLUDED.interest_expense,
+            non_interest_income = EXCLUDED.non_interest_income,
+            other_non_operating_income = EXCLUDED.other_non_operating_income,
+            depreciation = EXCLUDED.depreciation,
+            depreciation_and_amortization = EXCLUDED.depreciation_and_amortization,
+            income_before_tax = EXCLUDED.income_before_tax,
+            income_tax_expense = EXCLUDED.income_tax_expense,
+            interest_and_debt_expense = EXCLUDED.interest_and_debt_expense,
+            net_income_from_continuing_operations = EXCLUDED.net_income_from_continuing_operations,
+            comprehensive_income_net_of_tax = EXCLUDED.comprehensive_income_net_of_tax,
+            ebit = EXCLUDED.ebit,
+            ebitda = EXCLUDED.ebitda,
+            net_income = EXCLUDED.net_income;
+        """
+    def _data_transformation(self, file_path):
+        try:
+            with open(file_path, 'r') as file:
+                data = json.load(file)
+            
+            if not data:
+                logging.warning(f"Empty data in {file_path}. Skipping.")
+                return None
+
+            symbol = data.get("symbol")
+            balance_sheet_data = data.get("quarterlyReports", [])
+            
+            if not symbol or not balance_sheet_data:
+                logging.warning(f"Missing required data in {file_path}. Skipping.")
+                return None
+
+            outputs = []
+            for item in balance_sheet_data:
+                output = (
+                    symbol,
+                    convert_to_date(item.get("fiscalDateEnding")),
+                    item.get("reportedCurrency"),
+                    convert_to_float(item.get("grossProfit")),
+                    convert_to_float(item.get("totalRevenue")),
+                    convert_to_float(item.get("costOfRevenue")),
+                    convert_to_float(item.get("costofGoodsAndServicesSold")),
+                    convert_to_float(item.get("operatingIncome")),
+                    convert_to_float(item.get("sellingGeneralAndAdministrative")),
+                    convert_to_float(item.get("researchAndDevelopment")),
+                    convert_to_float(item.get("operatingExpenses")),
+                    convert_to_float(item.get("investmentIncomeNet")),
+                    convert_to_float(item.get("netInterestIncome")),
+                    convert_to_float(item.get("interestIncome")),
+                    convert_to_float(item.get("interestExpense")),
+                    convert_to_float(item.get("nonInterestIncome")),
+                    convert_to_float(item.get("otherNonOperatingIncome")),
+                    convert_to_float(item.get("depreciation")),
+                    convert_to_float(item.get("depreciationAndAmortization")),
+                    convert_to_float(item.get("incomeBeforeTax")),
+                    convert_to_float(item.get("incomeTaxExpense")),
+                    convert_to_float(item.get("interestAndDebtExpense")),
+                    convert_to_float(item.get("netIncomeFromContinuingOperations")),
+                    convert_to_float(item.get("comprehensiveIncomeNetOfTax")),
+                    convert_to_float(item.get("ebit")),
+                    convert_to_float(item.get("ebitda")),
+                    convert_to_float(item.get("netIncome"))
+                )
+                outputs.append(output)
+            return outputs 
+        except json.JSONDecodeError:
+            logging.error(f"JSON decoding failed for {file_path}. File might be empty or invalid.")
+            return None
+        except Exception as e:
+            logging.error(f"Data transformation failed for {file_path}: {e}")
+            return None

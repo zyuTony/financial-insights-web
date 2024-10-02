@@ -1,7 +1,7 @@
 from config import *
 from utils.db_utils import *
 from utils.avan_utils import *
-from utils.calc_utils import *
+from financial_database.backend.archives.calc_utils import *
 from dotenv import load_dotenv
 import os
 import json
@@ -29,7 +29,7 @@ A. get coint by target
 checkpoint_file_path = CHECKPOINT_JSON_PATH+'/manual_pipeline.json'
 coint_csv_path = COINT_CSV_PATH+'/manual_pipeline_coint.csv'
 signal_csv_path = SIGNAL_CSV_PATH+'/manual_pipeline_signal.csv'
-target_symbol = 'AAPL'
+target_symbol = 'GAP'
 sector = 'related to above symbol'
 conn = connect_to_db(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD)
 query = f"""

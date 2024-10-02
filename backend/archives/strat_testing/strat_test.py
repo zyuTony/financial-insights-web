@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from utils.strat_utils import *
+from financial_database.backend.archives.strat_utils import *
 import json 
 
 file = '.home/ec2-user/financial_database/backend/SPY_DAILY_data.csv'

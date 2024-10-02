@@ -1,5 +1,5 @@
 from config import *
-from utils.calc_utils import *
+from financial_database.backend.archives.calc_utils import *
 from dotenv import load_dotenv
 
 load_dotenv(override=True)

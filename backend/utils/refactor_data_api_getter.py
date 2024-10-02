@@ -6,6 +6,7 @@ from datetime import datetime
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import requests
 import time
+from binance.client import Client
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,7 +26,8 @@ class api_getter(ABC):
     @abstractmethod
     def download_data(self):
         pass
-    
+
+"""COIN GECKO"""    
 class coin_gecko_daily_ohlc_api_getter(api_getter):
     
     def __init__(self, api_key, data_save_path, start_date, end_date):
@@ -68,88 +70,115 @@ class coin_gecko_daily_ohlc_api_getter(api_getter):
     def _get_download_symbol_list(self):
         # get top coins
         symbols_ranking = []
-        for page_num in range(1, 6): # pull top 1500 coins just in case
+        for page_num in range(1, 4): # pull top 1500 coins just in case
             symbols_ranking.extend(self._pull_coin_list_ranking(page_num))
 
         ids = [item["id"] for item in symbols_ranking][:self.num_download_symbols]
         symbols = [item["symbol"].upper() for item in symbols_ranking][:self.num_download_symbols]
         return ids, symbols
     
+    def _download_single_symbol(self, id, symbol):
+        unix_start = self._get_unix_from_date_object(self.start_date)
+        unix_end = self._get_unix_from_date_object(self.end_date)
+        all_data = []    
+        current_start = unix_start
+        while current_start < unix_end:
+            current_end = min(current_start + DAYS_PER_API_LIMIT * 24 * 60 * 60, unix_end)
+            try:
+                url = f"https://pro-api.coingecko.com/api/v3/coins/{id}/ohlc/range?vs_currency=usd&from={current_start}&to={current_end}&interval=daily"
+                headers = {
+                    "accept": "application/json",
+                    "x-cg-pro-api-key": self.api_key
+                }            
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    all_data.extend(response.json())  
+                    logging.debug(f"Downloaded data for {symbol} from {current_start} to {current_end}")
+                else:
+                    logging.error(f"Failed to download data for {symbol} from {current_start} to {current_end}: {response.status_code} {response.text}")
+                
+                current_start = current_end + 1
+            except Exception as e:
+                logging.exception(f"Exception occurred while downloading data for {symbol} from {unix_start} to {current_end}: {e}")
+                break
+        return all_data
+
     def download_data(self):
         ids, symbols = self._get_download_symbol_list()
         
-        unix_start = self._get_unix_from_date_object(self.start_date)
-        unix_end = self._get_unix_from_date_object(self.end_date)
         logging.debug(f"start downloading symbol list:{symbols}") 
         
         for id, symbol in zip(ids, symbols):
-            all_data = []    
-            current_start = unix_start
-            while current_start < unix_end:
-                current_end = min(current_start + DAYS_PER_API_LIMIT * 24 * 60 * 60, unix_end)
-                try:
-                    url = f"https://pro-api.coingecko.com/api/v3/coins/{id}/ohlc/range?vs_currency=usd&from={current_start}&to={current_end}&interval=daily"
-                    headers = {
-                        "accept": "application/json",
-                        "x-cg-pro-api-key": self.api_key
-                    }            
-                    response = requests.get(url, headers=headers)
-                    if response.status_code == 200:
-                        all_data.extend(response.json())  
-                        logging.debug(f"Downloaded data for {symbol} from {current_start} to {current_end}")
-                    else:
-                        logging.error(f"Failed to download data for {symbol} from {current_start} to {current_end}: {response.status_code} {response.text}")
-                    
-                    current_start = current_end + 1
-                except Exception as e:
-                    logging.exception(f"Exception occurred while downloading data for {symbol} from {unix_start} to {current_end}: {e}")
-                    break
-
+            all_data = self._download_single_symbol(id, symbol)
             with open(self.data_save_path+f'/{symbol}.json', 'w') as file:
                 json.dump(all_data, file, indent=4)
             logging.info(f"Saved full data for {symbol} to {symbol}.json")
          
 class coin_gecko_hourly_ohlc_api_getter(coin_gecko_daily_ohlc_api_getter):     
     '''slight change of download_data from daily ohlc api'''
-    def download_data(self):
-        ids, symbols = self._get_download_symbol_list()
-        
+    def _download_single_symbol(self, id, symbol):
         unix_start = self._get_unix_from_date_object(self.start_date)
         unix_end = self._get_unix_from_date_object(self.end_date)
-        logging.debug(f"start downloading symbol list:{symbols}") 
+        all_data = []    
+        current_start = unix_start
+        while current_start < unix_end:
+            current_end = min(current_start + DAYS_PER_API_LIMIT_HOURLY * 24 * 60 * 60, unix_end)
+            try:
+                url = f"https://pro-api.coingecko.com/api/v3/coins/{id}/ohlc/range?vs_currency=usd&from={current_start}&to={current_end}&interval=hourly"
+                headers = {
+                    "accept": "application/json",
+                    "x-cg-pro-api-key": self.api_key
+                }            
+                response = requests.get(url, headers=headers)
+                if response.status_code == 200:
+                    all_data.extend(response.json())  
+                    logging.debug(f"Downloaded data for {symbol} from {current_start} to {current_end}")
+                else:
+                    logging.error(f"Failed to download data for {symbol} from {current_start} to {current_end}: {response.status_code} {response.text}")
+                
+                current_start = current_end + 1
+            except Exception as e:
+                logging.exception(f"Exception occurred while downloading data for {symbol} from {unix_start} to {current_end}: {e}")
+                break
+        return all_data
+
+'''BINANCE'''
+class binance_ohlc_api_getter(coin_gecko_daily_ohlc_api_getter):
+    '''Binance api data download that include volume data'''
+    def __init__(self, api_key, api_secret, data_save_path, interval, start_date, end_date):
+        super().__init__(api_key, data_save_path, None, None)
+        self.num_download_symbols = 300 
+        self.api_secret = api_secret
+        self.client = Client(self.api_key, self.api_secret)
+        self.interval = interval
+        self.start_date = start_date
+        self.end_date = end_date
         
-        for id, symbol in zip(ids, symbols):
-            all_data = []    
-            current_start = unix_start
-            while current_start < unix_end:
-                current_end = min(current_start + DAYS_PER_API_LIMIT_HOURLY * 24 * 60 * 60, unix_end)
-                try:
-                    url = f"https://pro-api.coingecko.com/api/v3/coins/{id}/ohlc/range?vs_currency=usd&from={current_start}&to={current_end}&interval=hourly"
-                    headers = {
-                        "accept": "application/json",
-                        "x-cg-pro-api-key": self.api_key
-                    }            
-                    response = requests.get(url, headers=headers)
-                    if response.status_code == 200:
-                        all_data.extend(response.json())  
-                        logging.debug(f"Downloaded data for {symbol} from {current_start} to {current_end}")
-                    else:
-                        logging.error(f"Failed to download data for {symbol} from {current_start} to {current_end}: {response.status_code} {response.text}")
-                    
-                    current_start = current_end + 1
-                except Exception as e:
-                    logging.exception(f"Exception occurred while downloading data for {symbol} from {unix_start} to {current_end}: {e}")
-                    break
+    def _download_single_symbol(self, symbol):
+        try:
+            # Get data and save to JSON
+            symbol = symbol+'USDT'
+            ticker_data = self.client.get_historical_klines(symbol, self.interval, self.start_date, self.end_date)
+            with open(f'{self.data_save_path}/{self.interval.split("_")[-1]}/{symbol}.json', 'w') as file:
+                json.dump(ticker_data, file, indent=4)
+            logging.info(f'Downloaded {symbol}')
+            return 1
+        except Exception as e:
+            logging.error(f"Error downloading {symbol}: {e}")
+            return -1
 
-            with open(self.data_save_path+f'/{symbol}.json', 'w') as file:
-                json.dump(all_data, file, indent=4)
-            logging.info(f"Saved full data for {symbol} to {symbol}.json")
-
+    def download_data(self): 
+        _, symbols = self._get_download_symbol_list()
+        for symbol in symbols:
+            self._download_single_symbol(symbol)
+            
+        
+'''ALPHA VANTAGE'''
 class avan_stock_daily_ohlc_api_getter(api_getter):
     
     def __init__(self, api_key, data_save_path, start_date, end_date, additional_tickers=None):
         super().__init__(api_key, data_save_path)
-        self.num_download_symbols = 2000 
+        self.num_download_symbols = 2000
         self.top_symbols_list_path = SEC_STOCK_TICKERS
         self.start_date = None
         self.end_date = None 
@@ -186,6 +215,23 @@ class avan_stock_overview_api_getter(avan_stock_daily_ohlc_api_getter):
         symbols = self._get_download_symbol_list()
         for symbol in symbols:
             url = f'https://www.alphavantage.co/query?function=OVERVIEW&symbol={symbol}&apikey={self.api_key}'
+
+            response = requests.get(url)
+            json_file_path = self.data_save_path + f'/{symbol}.json'
+            if response.status_code == 200:
+                data = response.json()
+                with open(json_file_path, 'w') as file:
+                    json.dump(data, file, indent=4)
+                logging.info(f"{symbol} saved to {json_file_path}")
+            else:
+                logging.error(f"Error fetching {symbol}: {response.status_code}")
+            time.sleep(AVAN_SLEEP_TIME)  
+            
+class avan_stock_fundamentals_api_getter(avan_stock_daily_ohlc_api_getter):
+    def download_data(self):
+        symbols = self._get_download_symbol_list()
+        for symbol in symbols:
+            url = f'https://www.alphavantage.co/query?function=INCOME_STATEMENT&symbol={symbol}&apikey={self.api_key}'
 
             response = requests.get(url)
             json_file_path = self.data_save_path + f'/{symbol}.json'

@@ -1,8 +1,8 @@
 from config import *
 from dotenv import load_dotenv
 import os
-from utils.refactor_data_updater import *
-from utils.refactor_api_getter import *
+from utils.refactor_db_data_updater import *
+from utils.refactor_data_api_getter import *
 
 load_dotenv(override=True)
 bn_api_key = os.getenv('BINANCE_API')  

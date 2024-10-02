@@ -12,7 +12,7 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M' #datefmt='%Y-%m-%d %H:%M:%S'
 )
 
-class db_communicator(ABC): 
+class db_signal_updater(ABC): 
     '''object that 1) connect to db 2) ingest input data 3) insert output to db. 
     Template for stock and coin cointegration index calculation.
     '''
@@ -50,17 +50,93 @@ class db_communicator(ABC):
     @abstractmethod
     def fetch_input_data(self):
         pass
-      
+    
+    @abstractmethod
+    def _create_signal_data_table(self):
+        pass
+    
     @abstractmethod
     def insert_signal_data_table(self, signal_df):
         pass
+ 
+class coin_stonewell_signal_updater(db_signal_updater):
+    '''input data: top 20 coins
+       calculation:    
+    '''
+    def fetch_input_data(self, top_n_tickers):
+        query = f"""
+        WITH top_tickers AS (
+            SELECT DISTINCT a.symbol, market_cap
+            FROM binance_coin_historical_price a
+            join coin_overview b
+            on a.symbol=b.symbol 
+            WHERE market_cap IS NOT NULL
+            ORDER BY market_cap DESC 
+            LIMIT {top_n_tickers}
+        )
+        SELECT a.*
+        FROM binance_coin_historical_price a 
+        JOIN top_tickers b ON a.symbol = b.symbol
+        WHERE date >= '2020-01-01'
+        order by date
+        """
+        return pd.read_sql(query, self.conn)
 
-    @abstractmethod
-    def insert_api_output_data(self):
-        pass
+    def _create_signal_data_table(self):
+        cursor = self.conn.cursor()
+        try:
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS coin_stonewell_signal (
+                symbol VARCHAR(50) NOT NULL,
+                close_above_sma BOOLEAN NOT NULL,
+                close_above_sma_pct NUMERIC NOT NULL,
+                rsi_above_sma BOOLEAN NOT NULL,
+                short_vol_above_long BOOLEAN NOT NULL,
+                death_cross BOOLEAN NOT NULL,
+                last_updated TIMESTAMPTZ NOT NULL,
+                PRIMARY KEY (symbol)
+            );
+            """
+            cursor.execute(create_table_query)
+            self.conn.commit()
+            logging.info("coin_stonewell_signal table created successfully.")
+        except Exception as e:
+            logging.error(f"Failed to create table: {str(e)}")
+            self.conn.rollback()
+        finally:
+            cursor.close()
+    
+    def insert_signal_data_table(self, signal_df):
+        self._create_signal_data_table()
+        
+        csv_as_tuple = list(signal_df.itertuples(index=False, name=None))
+        cursor = self.conn.cursor()
+        insert_query = """
+        INSERT INTO coin_stonewell_signal (symbol, close_above_sma, close_above_sma_pct, rsi_above_sma, short_vol_above_long, death_cross, last_updated)
+        VALUES %s
+        ON CONFLICT (symbol) 
+        DO UPDATE SET 
+            close_above_sma = EXCLUDED.close_above_sma,
+            close_above_sma_pct = EXCLUDED.close_above_sma_pct,
+            rsi_above_sma = EXCLUDED.rsi_above_sma,
+            short_vol_above_long = EXCLUDED.short_vol_above_long,
+            death_cross = EXCLUDED.death_cross,
+            last_updated = EXCLUDED.last_updated;
+        """
+        try:      
+            chunk_size = 1000  # Increased chunk size for better performance
+            for i in range(0, len(csv_as_tuple), chunk_size):
+                execute_values(cursor, insert_query, csv_as_tuple[i:i+chunk_size])
+            self.conn.commit()
+            logging.info(f"Inserted/Updated {len(csv_as_tuple)} rows in coin_stonewell_signal table.")
+        except Exception as e:
+            logging.error(f"Failed to insert data: {e}")
+            self.conn.rollback()
+        finally:
+            cursor.close()
 
-class stock_coint_db_communicator(db_communicator):
-    '''inherit db_communicator with custom stock output table creation and output data insertion'''
+class stock_coint_db_signal_updater(db_signal_updater):
+    '''inherit db_signal_updater with custom stock output table creation and output data insertion'''
     def fetch_input_data(self, top_n_tickers):
         query = f"""
         WITH top_tickers AS (
@@ -269,8 +345,8 @@ class stock_coint_db_communicator(db_communicator):
             cursor.close()
             logging.info("API data update process completed.")
                      
-class stock_coint_by_segment_db_communicator(stock_coint_db_communicator):
-    '''variation of stock_coint_db_communicator, with new method of ingesting input data'''
+class stock_coint_by_segment_db_signal_updater(stock_coint_db_signal_updater):
+    '''variation of stock_coint_db_signal_updater, with new method of ingesting input data'''
     def fetch_input_data(self, top_n_tickers_by_sectors):
         query = f"""
         WITH ranked_stocks AS (
@@ -293,8 +369,8 @@ class stock_coint_by_segment_db_communicator(stock_coint_db_communicator):
         """
         return pd.read_sql(query, self.conn)
     
-class coin_coint_db_communicator(db_communicator):
-    '''inherit db_communicator with custom crypto output table creation and output data insertion'''
+class coin_coint_db_signal_updater(db_signal_updater):
+    '''inherit db_signal_updater with custom crypto output table creation and output data insertion'''
     def fetch_input_data(self, top_n_tickers):
         query = f"""
         with top_tickers as (
