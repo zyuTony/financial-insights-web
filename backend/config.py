@@ -1,8 +1,8 @@
 from datetime import datetime
 from twilio.rest import Client
 
-DATA_FOLDER = '/home/ec2-user/financial_database/backend/data'
-
+# DATA_FOLDER = '/home/ec2-user/financial_database/backend/data'
+DATA_FOLDER = 'C:/Users/zongy/Desktop/repo/financial_database/backend/data'
 # FOLDERS
 RAW_CSV_PATH = DATA_FOLDER + '/raw_csv'
 CHECKPOINT_JSON_PATH = DATA_FOLDER + '/checkpoints'
@@ -10,11 +10,13 @@ COINT_CSV_PATH = DATA_FOLDER + '/rolling_coint_result_csv'
 SIGNAL_CSV_PATH = DATA_FOLDER + '/signal_csv'
 
 # BINANCE JSON 
+TOP_N_COINS_DOWNLOADED_FROM_BINANCE = 200
 BN_MAX_RETRIES = 3
 BN_CHECKPOINT_FILE = CHECKPOINT_JSON_PATH + '/binance_checkpoint.json'
 BN_JSON_PATH = DATA_FOLDER + '/binance_raw_json'
 BN_DAILY_JSON_PATH = BN_JSON_PATH + '/1DAY'
 BN_HOURLY_JSON_PATH = BN_JSON_PATH + '/1HOUR'
+
 # COIN GECKO JSON
 DAYS_PER_API_LIMIT = 180
 DAYS_PER_API_LIMIT_HOURLY = 31
@@ -23,6 +25,7 @@ GECKO_DAILY_JSON_PATH = DATA_FOLDER + '/gecko_raw_json/daily'
 GECKO_HOURLY_JSON_PATH = DATA_FOLDER + '/gecko_raw_json/hourly'
 
 # AVAN JSON  
+TOP_N_STOCKS_DOWNLOADED = 1000
 AVAN_SLEEP_TIME = 0.8
 SEC_STOCK_TICKERS = DATA_FOLDER + '/sec_stock_tickers.json'
 
@@ -33,6 +36,7 @@ AVAN_JSON_PATH = DATA_FOLDER + '/avan_raw_json'
 AVAN_DAILY_JSON_PATH = AVAN_JSON_PATH + '/avan_data_DAILY'
 AVAN_OVERVIEW_JSON_PATH = AVAN_JSON_PATH + '/avan_data_OVERVIEW'
 AVAN_BALANCE_SHEET_JSON_PATH = AVAN_JSON_PATH + '/avan_data_BALANCE_SHEET'
+AVAN_INCOME_STATEMENT_JSON_PATH = AVAN_JSON_PATH + '/avan_data_INCOME_STATEMENT'
 AVAN_OPTION_JSON_PATH = AVAN_JSON_PATH + '/avan_data_OPTION'
 
 # HIST PRICE CSV

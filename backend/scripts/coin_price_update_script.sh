@@ -9,7 +9,8 @@ start_time=$(date +%s)
 
 # Clean up checkpoints
 echo "--- Checkpoints Clean Up ---"
-FILE="/home/ec2-user/financial_database/backend/data/checkpoints/coin_calc_pipeline.json"
+# FILE="/home/ec2-user/financial_database/backend/data/checkpoints/coin_calc_pipeline.json"
+FILE="C:/Users/zongy/Desktop/repo/financial_database/backend/data/checkpoints/coin_calc_pipeline.json"
 [ -f "$FILE" ] && rm "$FILE" && echo "$FILE deleted" || echo "$FILE does not exist"
 
  

@@ -147,7 +147,7 @@ class binance_ohlc_api_getter(coin_gecko_daily_ohlc_api_getter):
     '''Binance api data download that include volume data'''
     def __init__(self, api_key, api_secret, data_save_path, interval, start_date, end_date):
         super().__init__(api_key, data_save_path, None, None)
-        self.num_download_symbols = 300 
+        self.num_download_symbols = TOP_N_COINS_DOWNLOADED_FROM_BINANCE
         self.api_secret = api_secret
         self.client = Client(self.api_key, self.api_secret)
         self.interval = interval
@@ -178,7 +178,7 @@ class avan_stock_daily_ohlc_api_getter(api_getter):
     
     def __init__(self, api_key, data_save_path, start_date, end_date, additional_tickers=None):
         super().__init__(api_key, data_save_path)
-        self.num_download_symbols = 2000
+        self.num_download_symbols = TOP_N_STOCKS_DOWNLOADED
         self.top_symbols_list_path = SEC_STOCK_TICKERS
         self.start_date = None
         self.end_date = None 
@@ -227,11 +227,28 @@ class avan_stock_overview_api_getter(avan_stock_daily_ohlc_api_getter):
                 logging.error(f"Error fetching {symbol}: {response.status_code}")
             time.sleep(AVAN_SLEEP_TIME)  
             
-class avan_stock_fundamentals_api_getter(avan_stock_daily_ohlc_api_getter):
+class avan_stock_income_statement_api_getter(avan_stock_daily_ohlc_api_getter):
     def download_data(self):
         symbols = self._get_download_symbol_list()
         for symbol in symbols:
             url = f'https://www.alphavantage.co/query?function=INCOME_STATEMENT&symbol={symbol}&apikey={self.api_key}'
+
+            response = requests.get(url)
+            json_file_path = self.data_save_path + f'/{symbol}.json'
+            if response.status_code == 200:
+                data = response.json()
+                with open(json_file_path, 'w') as file:
+                    json.dump(data, file, indent=4)
+                logging.info(f"{symbol} saved to {json_file_path}")
+            else:
+                logging.error(f"Error fetching {symbol}: {response.status_code}")
+            time.sleep(AVAN_SLEEP_TIME)  
+
+class avan_stock_balance_sheet_api_getter(avan_stock_daily_ohlc_api_getter):
+    def download_data(self):
+        symbols = self._get_download_symbol_list()
+        for symbol in symbols:
+            url = f'https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol={symbol}&apikey={self.api_key}'
 
             response = requests.get(url)
             json_file_path = self.data_save_path + f'/{symbol}.json'

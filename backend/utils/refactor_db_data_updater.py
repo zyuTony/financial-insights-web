@@ -558,7 +558,7 @@ class avan_stock_overview_db_refresher(db_refresher):
             logging.debug(f"Data transformation failed for {file_path}: {e}")
             return None
       
-class avan_stock_balance_sheet_db_refresher(db_refresher):
+class avan_stock_income_statement_db_refresher(db_refresher):
     '''handle all data insertion from OHLC data via alpha vantage api'''
     def __init__(self, *args):
         super().__init__(*args)
@@ -685,6 +685,177 @@ class avan_stock_balance_sheet_db_refresher(db_refresher):
                 )
                 outputs.append(output)
             return outputs 
+        except json.JSONDecodeError:
+            logging.error(f"JSON decoding failed for {file_path}. File might be empty or invalid.")
+            return None
+        except Exception as e:
+            logging.error(f"Data transformation failed for {file_path}: {e}")
+            return None
+        
+class avan_stock_balance_sheet_db_refresher(db_refresher):
+    def __init__(self, *args):
+        super().__init__(*args)
+        
+        self.table_creation_script = f"""
+        CREATE TABLE IF NOT EXISTS {self.table_name} (
+            symbol VARCHAR(10) NOT NULL,
+            fiscal_date_ending DATE NOT NULL,
+            reported_currency VARCHAR(5),
+            total_assets NUMERIC,
+            total_current_assets NUMERIC,
+            cash_and_cash_equivalents NUMERIC,
+            cash_and_short_term_investments NUMERIC,
+            inventory NUMERIC,
+            current_net_receivables NUMERIC,
+            total_non_current_assets NUMERIC,
+            property_plant_equipment NUMERIC,
+            accumulated_depreciation_amortization_ppe NUMERIC,
+            intangible_assets NUMERIC,
+            intangible_assets_excluding_goodwill NUMERIC,
+            goodwill NUMERIC,
+            investments NUMERIC,
+            long_term_investments NUMERIC,
+            short_term_investments NUMERIC,
+            other_current_assets NUMERIC,
+            other_non_current_assets NUMERIC,
+            total_liabilities NUMERIC,
+            total_current_liabilities NUMERIC,
+            current_accounts_payable NUMERIC,
+            deferred_revenue NUMERIC,
+            current_debt NUMERIC,
+            short_term_debt NUMERIC,
+            total_non_current_liabilities NUMERIC,
+            capital_lease_obligations NUMERIC,
+            long_term_debt NUMERIC,
+            current_long_term_debt NUMERIC,
+            long_term_debt_noncurrent NUMERIC,
+            short_long_term_debt_total NUMERIC,
+            other_current_liabilities NUMERIC,
+            other_non_current_liabilities NUMERIC,
+            total_shareholder_equity NUMERIC,
+            treasury_stock NUMERIC,
+            retained_earnings NUMERIC,
+            common_stock NUMERIC,
+            common_stock_shares_outstanding NUMERIC,
+            PRIMARY KEY (symbol, fiscal_date_ending)
+        );
+        """
+        
+        self.data_insertion_script = f"""
+        INSERT INTO {self.table_name} (
+            symbol, fiscal_date_ending, reported_currency, total_assets, total_current_assets,
+            cash_and_cash_equivalents, cash_and_short_term_investments, inventory, current_net_receivables,
+            total_non_current_assets, property_plant_equipment, accumulated_depreciation_amortization_ppe,
+            intangible_assets, intangible_assets_excluding_goodwill, goodwill, investments,
+            long_term_investments, short_term_investments, other_current_assets, other_non_current_assets,
+            total_liabilities, total_current_liabilities, current_accounts_payable, deferred_revenue,
+            current_debt, short_term_debt, total_non_current_liabilities, capital_lease_obligations,
+            long_term_debt, current_long_term_debt, long_term_debt_noncurrent, short_long_term_debt_total,
+            other_current_liabilities, other_non_current_liabilities, total_shareholder_equity,
+            treasury_stock, retained_earnings, common_stock, common_stock_shares_outstanding
+        ) VALUES %s
+        ON CONFLICT (symbol, fiscal_date_ending)
+        DO UPDATE SET
+            reported_currency = EXCLUDED.reported_currency,
+            total_assets = EXCLUDED.total_assets,
+            total_current_assets = EXCLUDED.total_current_assets,
+            cash_and_cash_equivalents = EXCLUDED.cash_and_cash_equivalents,
+            cash_and_short_term_investments = EXCLUDED.cash_and_short_term_investments,
+            inventory = EXCLUDED.inventory,
+            current_net_receivables = EXCLUDED.current_net_receivables,
+            total_non_current_assets = EXCLUDED.total_non_current_assets,
+            property_plant_equipment = EXCLUDED.property_plant_equipment,
+            accumulated_depreciation_amortization_ppe = EXCLUDED.accumulated_depreciation_amortization_ppe,
+            intangible_assets = EXCLUDED.intangible_assets,
+            intangible_assets_excluding_goodwill = EXCLUDED.intangible_assets_excluding_goodwill,
+            goodwill = EXCLUDED.goodwill,
+            investments = EXCLUDED.investments,
+            long_term_investments = EXCLUDED.long_term_investments,
+            short_term_investments = EXCLUDED.short_term_investments,
+            other_current_assets = EXCLUDED.other_current_assets,
+            other_non_current_assets = EXCLUDED.other_non_current_assets,
+            total_liabilities = EXCLUDED.total_liabilities,
+            total_current_liabilities = EXCLUDED.total_current_liabilities,
+            current_accounts_payable = EXCLUDED.current_accounts_payable,
+            deferred_revenue = EXCLUDED.deferred_revenue,
+            current_debt = EXCLUDED.current_debt,
+            short_term_debt = EXCLUDED.short_term_debt,
+            total_non_current_liabilities = EXCLUDED.total_non_current_liabilities,
+            capital_lease_obligations = EXCLUDED.capital_lease_obligations,
+            long_term_debt = EXCLUDED.long_term_debt,
+            current_long_term_debt = EXCLUDED.current_long_term_debt,
+            long_term_debt_noncurrent = EXCLUDED.long_term_debt_noncurrent,
+            short_long_term_debt_total = EXCLUDED.short_long_term_debt_total,
+            other_current_liabilities = EXCLUDED.other_current_liabilities,
+            other_non_current_liabilities = EXCLUDED.other_non_current_liabilities,
+            total_shareholder_equity = EXCLUDED.total_shareholder_equity,
+            treasury_stock = EXCLUDED.treasury_stock,
+            retained_earnings = EXCLUDED.retained_earnings,
+            common_stock = EXCLUDED.common_stock,
+            common_stock_shares_outstanding = EXCLUDED.common_stock_shares_outstanding;
+        """
+
+    def _data_transformation(self, file_path):
+        try:
+            with open(file_path, 'r') as file:
+                data = json.load(file)
+
+            if not data:
+                logging.warning(f"Empty data in {file_path}. Skipping.")
+                return None
+
+            symbol = data.get("symbol")
+            balance_sheet_data = data.get("quarterlyReports", [])
+            
+            if not symbol or not balance_sheet_data:
+                logging.warning(f"Missing required data in {file_path}. Skipping.")
+                return None
+
+            outputs = []
+            for item in balance_sheet_data:
+                output = (
+                    symbol,
+                    convert_to_date(item.get("fiscalDateEnding")),
+                    item.get("reportedCurrency"),
+                    convert_to_float(item.get("totalAssets")),
+                    convert_to_float(item.get("totalCurrentAssets")),
+                    convert_to_float(item.get("cashAndCashEquivalentsAtCarryingValue")),
+                    convert_to_float(item.get("cashAndShortTermInvestments")),
+                    convert_to_float(item.get("inventory")),
+                    convert_to_float(item.get("currentNetReceivables")),
+                    convert_to_float(item.get("totalNonCurrentAssets")),
+                    convert_to_float(item.get("propertyPlantEquipment")),
+                    convert_to_float(item.get("accumulatedDepreciationAmortizationPPE")),
+                    convert_to_float(item.get("intangibleAssets")),
+                    convert_to_float(item.get("intangibleAssetsExcludingGoodwill")),
+                    convert_to_float(item.get("goodwill")),
+                    convert_to_float(item.get("investments")),
+                    convert_to_float(item.get("longTermInvestments")),
+                    convert_to_float(item.get("shortTermInvestments")),
+                    convert_to_float(item.get("otherCurrentAssets")),
+                    convert_to_float(item.get("otherNonCurrentAssets")),
+                    convert_to_float(item.get("totalLiabilities")),
+                    convert_to_float(item.get("totalCurrentLiabilities")),
+                    convert_to_float(item.get("currentAccountsPayable")),
+                    convert_to_float(item.get("deferredRevenue")),
+                    convert_to_float(item.get("currentDebt")),
+                    convert_to_float(item.get("shortTermDebt")),
+                    convert_to_float(item.get("totalNonCurrentLiabilities")),
+                    convert_to_float(item.get("capitalLeaseObligations")),
+                    convert_to_float(item.get("longTermDebt")),
+                    convert_to_float(item.get("currentLongTermDebt")),
+                    convert_to_float(item.get("longTermDebtNoncurrent")),
+                    convert_to_float(item.get("shortLongTermDebtTotal")),
+                    convert_to_float(item.get("otherCurrentLiabilities")),
+                    convert_to_float(item.get("otherNonCurrentLiabilities")),
+                    convert_to_float(item.get("totalShareholderEquity")),
+                    convert_to_float(item.get("treasuryStock")),
+                    convert_to_float(item.get("retainedEarnings")),
+                    convert_to_float(item.get("commonStock")),
+                    convert_to_float(item.get("commonStockSharesOutstanding"))
+                )
+                outputs.append(output)
+            return outputs
         except json.JSONDecodeError:
             logging.error(f"JSON decoding failed for {file_path}. File might be empty or invalid.")
             return None
