@@ -574,3 +574,4 @@ def insert_coin_overview_table(conn, file_path):
         conn.rollback()
     finally:
         cursor.close()
+

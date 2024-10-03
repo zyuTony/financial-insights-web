@@ -2,7 +2,34 @@ import { prisma } from "../../lib/prisma";
 
 export async function GET() {
   try {
-    const signals = await prisma.signal_api_output.findMany({
+    const signals = await prisma.coin_signal_api_output.findMany({
+      where: {
+        most_recent_coint_pct: { gt: 0.5 },
+        recent_coint_pct: { gt: 0.3 },
+        hist_coint_pct: { gt: 0.2 },
+        r_squared: { gt: 0.5 },
+        NOT: {
+          // filter out naturally cointed pairs
+          OR: [
+            {
+              symbol2: {
+                contains: "ETH",
+              },
+            },
+            {
+              symbol2: {
+                contains: "BTC",
+              },
+            },
+            {
+              AND: [{ symbol1: "USDC" }, { symbol2: "USDT" }],
+            },
+            {
+              AND: [{ symbol1: "USDT" }, { symbol2: "USDC" }],
+            },
+          ],
+        },
+      },
       orderBy: {
         most_recent_coint_pct: "desc",
       },
@@ -18,14 +45,6 @@ export async function GET() {
       r_squared: parseFloat(signal.r_squared),
       market_cap_1: signal.market_cap_1 ? parseInt(signal.market_cap_1) : null,
       market_cap_2: signal.market_cap_2 ? parseInt(signal.market_cap_2) : null,
-      pe_ratio_1: signal.pe_ratio_1 ? parseFloat(signal.pe_ratio_1) : null,
-      pe_ratio_2: signal.pe_ratio_2 ? parseFloat(signal.pe_ratio_2) : null,
-      target_price_1: signal.target_price_1
-        ? parseFloat(signal.target_price_1)
-        : null,
-      target_price_2: signal.target_price_2
-        ? parseFloat(signal.target_price_2)
-        : null,
     }));
 
     return new Response(JSON.stringify(formattedSignals), {
