@@ -43,7 +43,6 @@ def rolling_cointegration(name1, data1, name2, data2, window_length):
 
     return results
 
-
 def save_multi_pairs_rolling_coint(price_df, top_n_data, checkpoint_file, result_file):
     price_df['date'] = pd.to_datetime(price_df['date'])
 
@@ -204,7 +203,6 @@ def coint_pct_eval(df, hist_len, recent_len, pval=0.05):
 
     return result_df
  
-
 def get_ols_coeff(name1, name2, series1, series2):
     ols_result = sm.OLS(series1, sm.add_constant(series2)).fit() 
     return {
@@ -215,7 +213,6 @@ def get_ols_coeff(name1, name2, series1, series2):
         'r_squared': ols_result.rsquared_adj  
     }
 
-
 def get_multi_pairs_ols_coeff(hist_price_df, col_name):
     hist_price_df = hist_price_df.iloc[-OLS_WINDOW:] # use last 120 days to get coeff
     last_updated = hist_price_df['date'].iloc[-1]
@@ -224,11 +221,18 @@ def get_multi_pairs_ols_coeff(hist_price_df, col_name):
     print('---Begin getting ols for pairs')
     for pair in tqdm(col_name):
         split_string = pair.split('_')
-        ols = get_ols_coeff(split_string[0], split_string[1], hist_price_df.loc[:, split_string[0]], hist_price_df.loc[:, split_string[1]])
+        symbol1 = split_string[0]
+        symbol2 = split_string[1]
+        
+        if symbol1 not in hist_price_df.columns or symbol2 not in hist_price_df.columns:
+            print(f"Skipping pair {pair}: Columns {symbol1} or {symbol2} are missing in hist_price_df")
+            continue
+        
+        ols = get_ols_coeff(symbol1, symbol2, hist_price_df.loc[:, symbol1], hist_price_df.loc[:, symbol2])
         ols['last_updated'] = last_updated
         result.append(ols)
+        
     return pd.DataFrame(result)
-
 
 def get_signal(rolling_coint_df, hist_price_df):
     # rolling coint scores
@@ -243,7 +247,7 @@ def get_signal(rolling_coint_df, hist_price_df):
     return result[['name1', 'name2', 'window_length', 'most_recent_coint_pct', 'recent_coint_pct', 'hist_coint_pct', 'r_squared', 'ols_constant', 'ols_coeff', 'last_updated']]
  
 
-#### NOT IN USE $$$#####
+#### NOT IN USE #####
 # Get signal/ols from coint
 def min_cont_coint_check(df, x, threshold=0.05): 
     result = []
@@ -252,53 +256,3 @@ def min_cont_coint_check(df, x, threshold=0.05):
         if any(series.rolling(window=x).sum() == x):
             result.append(col)
     return result
-
-
-'''
-parallel coint get
-'''
-def timeit(func):
-    def wrapper(*args, **kwargs):
-        start_time = time.time()  # Start time before function execution
-        result = func(*args, **kwargs)  # Execute the function
-        end_time = time.time()  # End time after function execution
-        elapsed_time = end_time - start_time  # Calculate elapsed time
-        print(f"{func.__name__} completed in {elapsed_time:.2f} seconds.")
-        return result
-    return wrapper
-
-def compute_coint(args):
-    col1, col2, data = args
-    x = data[col1]
-    y = data[col2]
-    if len(x) < 120 or len(x) != len(y) :
-        raise ValueError("The length of the time window is greater than the available df, OR data lengths differ.")
-    rolling_coint_scores = []
-    rolling_p_values = []
-
-    for end in range(120, len(x)):
-        start = end - 120
-        series1 = x[start:end]
-        series2 = y[start:end]
-        
-        score, p_value, _ = coint(series1, series2)
-        
-        rolling_coint_scores.append(score)
-        rolling_p_values.append(p_value) 
-
-    coint_t, p_value, crit_value = coint(y, x)
-    return col1, col2, coint_t, p_value
-
-# Function to generate all possible pairs of columns (excluding 'date')
-def generate_all_possible_pairs(df):
-    columns = df.columns 
-    print('processing')
-    return [(columns[i], columns[j], df) for i in range(len(columns)) for j in range(i+1, len(columns))]
-
-@timeit
-def parallel_coint_test(pairs, num_processes=1):
-    with Pool(processes=num_processes) as pool:
-        results = list(tqdm(pool.imap(compute_coint, pairs), total=len(pairs)))
-    return results
-
-'''end'''

@@ -9,7 +9,7 @@ from requests.exceptions import ReadTimeout, ConnectionError
 from tqdm import tqdm 
 from utils.bn_utils import *
 from utils.avan_utils import *
-from utils.calc_utils import *
+from financial_database.backend.archives.calc_utils import *
 from config import *
 
 '''STEPS

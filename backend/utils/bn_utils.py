@@ -48,8 +48,8 @@ def bn_pull_top_coins_hist_price_json(cmc_api_key, bn_api_key, bn_api_secret, st
   # --- Binance
   client = Client(bn_api_key, bn_api_secret)
   # pull data to json
-  if os.path.exists(config.BN_CHECKPOINT_FILE):
-      with open(config.BN_CHECKPOINT_FILE, 'r') as file:
+  if os.path.exists(BN_CHECKPOINT_FILE):
+      with open(BN_CHECKPOINT_FILE, 'r') as file:
           checkpoint_data = json.load(file)
   else:
       checkpoint_data = []
@@ -58,16 +58,16 @@ def bn_pull_top_coins_hist_price_json(cmc_api_key, bn_api_key, bn_api_secret, st
       if coin_id in checkpoint_data:
           print(f"Skipping {coin_id}, already downloaded.")
           continue
-      status = get_ticker_by_interval_name(client, coin_id, interval, interval_name, start_date, end_date, config.BN_JSON_PATH)
+      status = get_ticker_by_interval_name(client, coin_id, interval, interval_name, start_date, end_date, BN_DAILY_JSON_PATH)
       if status == 1:
           checkpoint_data.append(coin_id)
-          with open(config.BN_CHECKPOINT_FILE, 'w') as file:
+          with open(BN_CHECKPOINT_FILE, 'w') as file:
               json.dump(checkpoint_data, file, indent=4)
   print('Download completed! :)')
 
 def get_ticker_by_interval_name(client, coin_id, interval, interval_name, start_date, end_date, download_folder):
     retry_count = 0
-    while retry_count < config.BN_MAX_RETRIES:
+    while retry_count < BN_MAX_RETRIES:
         try:
             # Get data and save to JSON
             ticker_data = client.get_historical_klines(coin_id, interval, start_date, end_date)
@@ -203,7 +203,7 @@ def get_all_ticker_by_intervals(client, intervals, start_date, end_date):
                 continue
             
             retry_count = 0
-            while retry_count < config.BN_MAX_RETRIES:
+            while retry_count < BN_MAX_RETRIES:
                 try:
                     # Get data and save to JSON
                     ticker_data = client.get_historical_klines(coin_id, Client.KLINE_INTERVAL_30MINUTE, start_date, end_date)

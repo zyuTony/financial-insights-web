@@ -11,8 +11,8 @@
 
 # python
 /venv
-/backend/data
 __pycache__/
+
 
 # next.js
 /.next/

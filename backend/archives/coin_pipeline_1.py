@@ -21,7 +21,7 @@ Cadence: AUTOMATIC DAILY
   2. Insert data into DB
 '''
 
-# fetch latest 5 days data 
+# fetch latest 5 days data since already have previous data
 end_date = datetime.now() 
 start_date = end_date - timedelta(days=5)
 unix_end = get_unix_timestamp(end_date.strftime('%Y-%m-%d'))
@@ -36,8 +36,8 @@ for page_num in range(1, 6):
 with open(GECKO_JSON_PATH+'/mapping/top_symbol_by_mc.json', 'w') as file:
     json.dump(symbols_ranking, file, indent=4)
  
-ids = [item["id"] for item in symbols_ranking]
-symbols = [item["symbol"].upper() for item in symbols_ranking]
+ids = [item["id"] for item in symbols_ranking][:300]
+symbols = [item["symbol"].upper() for item in symbols_ranking][:300]
 # print(f"start working on {symbols}") # for debug
 
 # download jsons

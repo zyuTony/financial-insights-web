@@ -64,7 +64,7 @@ def create_stock_historical_price_table(conn):
             low NUMERIC NOT NULL,
             close NUMERIC NOT NULL,
             volume BIGINT NOT NULL,
-            UNIQUE (symbol, date)
+            PRIMARY KEY (symbol, date)
         );
         """
         cursor.execute(create_table_query)
@@ -154,7 +154,7 @@ def create_coin_historical_price_table(conn):
         high NUMERIC NOT NULL,
         low NUMERIC NOT NULL,
         close NUMERIC NOT NULL,
-        UNIQUE (symbol, date)
+        PRIMARY KEY (symbol, date)
         );
         """
         cursor.execute(create_table_query)
@@ -166,12 +166,35 @@ def create_coin_historical_price_table(conn):
     finally:
         cursor.close()
 
+def create_coin_hourly_historical_price_table(conn):
+    cursor = conn.cursor()
+    try:
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS coin_hourly_historical_price (
+        symbol VARCHAR(20) NOT NULL,
+        date TIMESTAMPTZ NOT NULL,
+        open NUMERIC NOT NULL,
+        high NUMERIC NOT NULL,
+        low NUMERIC NOT NULL,
+        close NUMERIC NOT NULL,
+        PRIMARY KEY (symbol, date)
+        );
+        """
+        cursor.execute(create_table_query)
+        conn.commit()
+        print(f"coin_hourly_historical_price created successfully.")
+    except Exception as e:
+        print(f"Failed to create table: {str(e)}")
+        conn.rollback()
+    finally:
+        cursor.close()
+        
 def create_coin_overview_table(conn):
     cursor = conn.cursor()
     try:
         create_table_query = """
             CREATE TABLE IF NOT EXISTS coin_overview (
-            symbol VARCHAR(10),
+            symbol VARCHAR(10) NOT NULL,
             name VARCHAR(255),
             current_price DECIMAL(20, 8),  
             market_cap BIGINT,
@@ -192,7 +215,6 @@ def create_coin_overview_table(conn):
             atl DECIMAL(20, 8),  
             atl_date TIMESTAMP,
             last_updated TIMESTAMP,
-            UNIQUE (symbol, name),
             PRIMARY KEY (symbol, name)
         );
         """
@@ -204,106 +226,7 @@ def create_coin_overview_table(conn):
         conn.rollback()
     finally:
         cursor.close()
-        
-def create_stock_pair_coint_table(conn):
-    cursor = conn.cursor()
-    try:
-        create_table_query = """
-        CREATE TABLE IF NOT EXISTS stock_pairs_coint (
-            date TIMESTAMPTZ NOT NULL,
-            window_length INT NOT NULL,
-            symbol1 VARCHAR(50) NOT NULL,
-            symbol2 VARCHAR(50) NOT NULL,
-            pvalue NUMERIC NOT NULL,
-            UNIQUE (date, window_length, symbol1, symbol2)
-        );
-        """
-        cursor.execute(create_table_query)
-        conn.commit()
-        print(f"stock_pairs_coint created successfully.")
-    except Exception as e:
-        print(f"Failed to create table: {str(e)}")
-        conn.rollback()
-    finally:
-        cursor.close()
-
-def create_coin_pair_coint_table(conn):
-    cursor = conn.cursor()
-    try:
-        create_table_query = """
-        CREATE TABLE IF NOT EXISTS coin_pairs_coint (
-            date TIMESTAMPTZ NOT NULL,
-            window_length INT NOT NULL,
-            symbol1 VARCHAR(50) NOT NULL,
-            symbol2 VARCHAR(50) NOT NULL,
-            pvalue NUMERIC NOT NULL,
-            UNIQUE (date, window_length, symbol1, symbol2)
-        );
-        """
-        cursor.execute(create_table_query)
-        conn.commit()
-        print(f"coin_pairs_coint created successfully.")
-    except Exception as e:
-        print(f"Failed to create table: {str(e)}")
-        conn.rollback()
-    finally:
-        cursor.close()
-
-def create_stock_signal_table(conn):
-    cursor = conn.cursor()
-    try:
-        create_table_query = """
-        CREATE TABLE IF NOT EXISTS stock_signal (
-            symbol1 VARCHAR(50) NOT NULL,
-            symbol2 VARCHAR(50) NOT NULL,
-            window_length INT NOT NULL,
-            most_recent_coint_pct NUMERIC NOT NULL, 
-            recent_coint_pct NUMERIC NOT NULL, 
-            hist_coint_pct NUMERIC NOT NULL, 
-            r_squared NUMERIC NOT NULL, 
-            ols_constant NUMERIC NOT NULL, 
-            ols_coeff NUMERIC NOT NULL, 
-            last_updated TIMESTAMPTZ NOT NULL,
-            UNIQUE (symbol1, symbol2, window_length)
-        );
-        """
-        cursor.execute(create_table_query)
-        conn.commit()
-        print(f"stock_signal created successfully.")
-    except Exception as e:
-        print(f"Failed to create table: {str(e)}")
-        conn.rollback()
-    finally:
-        cursor.close()
-
-def create_coin_signal_table(conn):
-    cursor = conn.cursor()
-    try:
-        create_table_query = """
-        CREATE TABLE IF NOT EXISTS coin_signal (
-            symbol1 VARCHAR(50) NOT NULL,
-            symbol2 VARCHAR(50) NOT NULL,
-            window_length INT NOT NULL,
-            most_recent_coint_pct NUMERIC NOT NULL, 
-            recent_coint_pct NUMERIC NOT NULL, 
-            hist_coint_pct NUMERIC NOT NULL, 
-            r_squared NUMERIC NOT NULL, 
-            ols_constant NUMERIC NOT NULL, 
-            ols_coeff NUMERIC NOT NULL, 
-            last_updated TIMESTAMPTZ NOT NULL,
-            UNIQUE (symbol1, symbol2, window_length)
-        );
-        """
-        cursor.execute(create_table_query)
-        conn.commit()
-        print(f"coin_signal created successfully.")
-    except Exception as e:
-        print(f"Failed to create table: {str(e)}")
-        conn.rollback()
-    finally:
-        cursor.close()
-
-
+     
 # Table insertion
 def insert_stock_historical_price_table(conn, file_path):
     cursor = conn.cursor()
@@ -322,7 +245,7 @@ def insert_stock_historical_price_table(conn, file_path):
                     float(metrics["1. open"]),
                     float(metrics["2. high"]),
                     float(metrics["3. low"]),
-                    float(metrics["5. adjusted close"]),
+                    float(metrics["4. close"]),
                     int(metrics["6. volume"])
                 )
                 records.append(record)
@@ -332,7 +255,17 @@ def insert_stock_historical_price_table(conn, file_path):
             INSERT INTO stock_historical_price (symbol, date, open, high, low, close, volume)
             VALUES %s
             ON CONFLICT (symbol, date)
-            DO NOTHING
+            DO UPDATE SET 
+                open = EXCLUDED.open,
+                high = EXCLUDED.high,
+                low = EXCLUDED.low,
+                close = EXCLUDED.close,
+                volume = EXCLUDED.volume
+            WHERE stock_historical_price.open <> EXCLUDED.open
+               OR stock_historical_price.high <> EXCLUDED.high
+               OR stock_historical_price.low <> EXCLUDED.low
+               OR stock_historical_price.close <> EXCLUDED.close
+               OR stock_historical_price.volume <> EXCLUDED.volume;
             """
             execute_values(cursor, insert_query, records)
             conn.commit()
@@ -371,6 +304,10 @@ def insert_coin_historical_price_table(conn, file_path):
                 high = EXCLUDED.high,
                 low = EXCLUDED.low,
                 close = EXCLUDED.close
+            WHERE coin_historical_price.open <> EXCLUDED.open
+               OR coin_historical_price.high <> EXCLUDED.high
+               OR coin_historical_price.low <> EXCLUDED.low
+               OR coin_historical_price.close <> EXCLUDED.close;
             """
             execute_values(cursor, insert_query, extracted_data)
             conn.commit()
@@ -380,8 +317,49 @@ def insert_coin_historical_price_table(conn, file_path):
     finally:
         cursor.close()
 
+def insert_coin_hourly_historical_price_table(conn, file_path):
+    cursor = conn.cursor()
+    try: 
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+            symbol = os.path.splitext(os.path.basename(file_path))[0]
+            extracted_data = []
+            seen_dates = set()
+            for entry in data:
+                date = pd.to_datetime(entry[0], unit='ms').strftime('%Y-%m-%d')
+                open_price  = entry[1]
+                high = entry[2]
+                low = entry[3]
+                close = entry[4]
+                               
+                if date not in seen_dates:# this is to deal with gc duplicated data that cause errors sometimes
+                    extracted_data.append([symbol, date, open_price, high, low, close])
+                    seen_dates.add(date)
+            
+            # Insert data into the database
+            insert_query = """
+            INSERT INTO coin_hourly_historical_price (symbol, date, open, high, low, close)
+            VALUES %s
+            ON CONFLICT (symbol, date)
+            DO UPDATE SET
+                open = EXCLUDED.open,
+                high = EXCLUDED.high,
+                low = EXCLUDED.low,
+                close = EXCLUDED.close
+            WHERE coin_hourly_historical_price.open <> EXCLUDED.open
+               OR coin_hourly_historical_price.high <> EXCLUDED.high
+               OR coin_hourly_historical_price.low <> EXCLUDED.low
+               OR coin_hourly_historical_price.close <> EXCLUDED.close;
+            """
+            execute_values(cursor, insert_query, extracted_data)
+            conn.commit()
+    except Exception as e:
+        print(f"Failed to insert data from {file_path}: {e}")
+        conn.rollback()
+    finally:
+        cursor.close()
+        
 def insert_stock_overview_table(conn, file_path):
-    # Error processing ATEYY.json: 'Symbol' indicate the data available in tickerlist but was not in avan overview data
     cursor = conn.cursor()
     try:
         with open(file_path, 'r') as file:
@@ -596,235 +574,4 @@ def insert_coin_overview_table(conn, file_path):
         conn.rollback()
     finally:
         cursor.close()
-        
-def insert_stock_pair_coint_table(conn, csv_as_tuple):
-    cursor = conn.cursor()
-    insert_query = """
-    INSERT INTO stock_pairs_coint (date, window_length, symbol1, symbol2, pvalue)
-    VALUES %s
-    ON CONFLICT DO NOTHING
-    """
-    try:      
-        chunk_size = 100
-        for i in range(0, len(csv_as_tuple), chunk_size):
-            execute_values(cursor, insert_query, csv_as_tuple[i:i+chunk_size])
-        conn.commit()
-    except Exception as e:
-        print(f"Failed to insert data: {e}")
-        conn.rollback()
-    finally:
-        cursor.close()
 
-def insert_coin_pair_coint_table(conn, csv_as_tuple):
-    cursor = conn.cursor()
-    insert_query = """
-    INSERT INTO coin_pairs_coint (date, window_length, symbol1, symbol2, pvalue)
-    VALUES %s
-    ON CONFLICT DO NOTHING
-    """
-    try:      
-        chunk_size = 100
-        for i in range(0, len(csv_as_tuple), chunk_size):
-            execute_values(cursor, insert_query, csv_as_tuple[i:i+chunk_size])
-        conn.commit()
-    except Exception as e:
-        print(f"Failed to insert data: {e}")
-        conn.rollback()
-    finally:
-        cursor.close()
-
-def insert_stock_signal_table(conn, csv_as_tuple):
-    cursor = conn.cursor()
-    insert_query = """
-    INSERT INTO stock_signal (symbol1, symbol2, window_length,most_recent_coint_pct, recent_coint_pct, hist_coint_pct, r_squared, ols_constant, ols_coeff, last_updated)
-    VALUES %s
-    ON CONFLICT (symbol1, symbol2, window_length) 
-    DO UPDATE SET 
-    most_recent_coint_pct = EXCLUDED.most_recent_coint_pct,
-    recent_coint_pct = EXCLUDED.recent_coint_pct,
-    hist_coint_pct = EXCLUDED.hist_coint_pct,
-    r_squared = EXCLUDED.r_squared,
-    ols_constant = EXCLUDED.ols_constant,
-    ols_coeff = EXCLUDED.ols_coeff,
-    last_updated = EXCLUDED.last_updated;
-    """
-    try:      
-        chunk_size = 100
-        for i in range(0, len(csv_as_tuple), chunk_size):
-            execute_values(cursor, insert_query, csv_as_tuple[i:i+chunk_size])
-        conn.commit()
-    except Exception as e:
-        print(f"Failed to insert data: {e}")
-        conn.rollback()
-    finally:
-        cursor.close()
-
-def insert_coin_signal_table(conn, csv_as_tuple):
-    cursor = conn.cursor()
-    insert_query = """
-    INSERT INTO coin_signal (symbol1, symbol2, window_length, most_recent_coint_pct, recent_coint_pct, hist_coint_pct, r_squared, ols_constant, ols_coeff, last_updated)
-    VALUES %s
-    ON CONFLICT (symbol1, symbol2, window_length) 
-    DO UPDATE SET 
-    most_recent_coint_pct = EXCLUDED.most_recent_coint_pct,
-    recent_coint_pct = EXCLUDED.recent_coint_pct,
-    hist_coint_pct = EXCLUDED.hist_coint_pct,
-    r_squared = EXCLUDED.r_squared,
-    ols_constant = EXCLUDED.ols_constant,
-    ols_coeff = EXCLUDED.ols_coeff,
-    last_updated = EXCLUDED.last_updated;
-    """
-    try:      
-        chunk_size = 100
-        for i in range(0, len(csv_as_tuple), chunk_size):
-            execute_values(cursor, insert_query, csv_as_tuple[i:i+chunk_size])
-        conn.commit()
-    except Exception as e:
-        print(f"Failed to insert data: {e}")
-        conn.rollback()
-    finally:
-        cursor.close()
-
-# Post SQL Operations
-def update_stock_signal_final_api_data(conn):
-    
-    cursor = conn.cursor()
-    try:
-        create_table_query = """
-        CREATE TABLE IF NOT EXISTS stock_signal_api_output (
-        symbol1 VARCHAR(50) NOT NULL,
-        market_cap_1 BIGINT,
-        pe_ratio_1 DECIMAL(10, 2),
-        target_price_1 DECIMAL(10, 2),
-        symbol2 VARCHAR(50) NOT NULL,
-        market_cap_2 BIGINT,
-        pe_ratio_2 DECIMAL(10, 2),
-        target_price_2 DECIMAL(10, 2),
-        most_recent_coint_pct NUMERIC,
-        recent_coint_pct NUMERIC,
-        hist_coint_pct NUMERIC,
-        r_squared DECIMAL,
-        ols_constant DECIMAL,
-        ols_coeff DECIMAL,
-        last_updated TIMESTAMPTZ NOT NULL,
-        UNIQUE (symbol1, symbol2)
-        );
-        """
-        cursor.execute(create_table_query)
-
-        insert_data_query = """
-        INSERT INTO stock_signal_api_output (symbol1, market_cap_1, pe_ratio_1, target_price_1, symbol2, market_cap_2, pe_ratio_2, target_price_2, most_recent_coint_pct, recent_coint_pct, hist_coint_pct, r_squared, ols_constant, ols_coeff, last_updated)
-        SELECT 
-            a.symbol1, 
-            b.MarketCapitalization AS market_cap_1, 
-            b.PERatio AS pe_ratio_1, 
-            b.AnalystTargetPrice AS target_price_1,
-            a.symbol2, 
-            c.MarketCapitalization AS market_cap_2, 
-            c.PERatio AS pe_ratio_2, 
-            c.AnalystTargetPrice AS target_price_2,
-            a.most_recent_coint_pct, 
-            a.recent_coint_pct,
-            a.hist_coint_pct,
-            a.r_squared, 
-            a.ols_constant, 
-            a.ols_coeff, 
-            a.last_updated
-        FROM 
-            stock_signal a 
-        JOIN 
-            stock_overview b ON a.symbol1 = b.symbol
-        JOIN 
-            stock_overview c ON a.symbol2 = c.symbol
-        ORDER BY 
-            a.most_recent_coint_pct DESC
-        ON CONFLICT (symbol1, symbol2) 
-        DO UPDATE SET 
-        market_cap_1 = EXCLUDED.market_cap_1,
-        pe_ratio_1 = EXCLUDED.pe_ratio_1,
-        target_price_1 = EXCLUDED.target_price_1,
-        market_cap_2 = EXCLUDED.market_cap_2,
-        pe_ratio_2 = EXCLUDED.pe_ratio_2,
-        target_price_2 = EXCLUDED.target_price_2,
-        most_recent_coint_pct = EXCLUDED.most_recent_coint_pct,
-        recent_coint_pct = EXCLUDED.recent_coint_pct,
-        hist_coint_pct = EXCLUDED.hist_coint_pct,
-        r_squared = EXCLUDED.r_squared,
-        ols_constant = EXCLUDED.ols_constant,
-        ols_coeff = EXCLUDED.ols_coeff,
-        last_updated = EXCLUDED.last_updated;
-        """
-        cursor.execute(insert_data_query)
-        conn.commit()
-        print(f"stock_signal_api_output updated successfully.")
-    except Exception as e:
-        print(f"Failed to get table: {str(e)}")
-        conn.rollback()
-    finally:
-        cursor.close()
-        
-def update_coin_signal_final_api_data(conn):
-    
-    cursor = conn.cursor()
-    try:
-        create_table_query = """
-        CREATE TABLE IF NOT EXISTS coin_signal_api_output (
-        symbol1 VARCHAR(50) NOT NULL,
-        market_cap_1 BIGINT,
-        symbol2 VARCHAR(50) NOT NULL,
-        market_cap_2 BIGINT,
-        most_recent_coint_pct NUMERIC,
-        recent_coint_pct NUMERIC,
-        hist_coint_pct NUMERIC,
-        r_squared DECIMAL,
-        ols_constant DECIMAL,
-        ols_coeff DECIMAL,
-        last_updated TIMESTAMPTZ NOT NULL,
-        UNIQUE (symbol1, market_cap_1, symbol2, market_cap_2),
-        PRIMARY KEY(symbol1, symbol2)
-        );
-        """
-        cursor.execute(create_table_query)
-
-        insert_data_query = """
-        INSERT INTO coin_signal_api_output (symbol1, market_cap_1, symbol2, market_cap_2, most_recent_coint_pct, recent_coint_pct, hist_coint_pct, r_squared, ols_constant, ols_coeff, last_updated)
-        SELECT distinct
-            a.symbol1, 
-            b.market_cap AS market_cap_1, 
-            a.symbol2, 
-            c.market_cap AS market_cap_2, 
-            a.most_recent_coint_pct, 
-            a.recent_coint_pct,
-            a.hist_coint_pct,
-            a.r_squared, 
-            a.ols_constant, 
-            a.ols_coeff, 
-            a.last_updated
-        FROM 
-            coin_signal a 
-        JOIN 
-            coin_overview b ON a.symbol1 = b.symbol
-        JOIN 
-            coin_overview c ON a.symbol2 = c.symbol
-        ORDER BY 
-            a.most_recent_coint_pct DESC
-        ON CONFLICT (symbol1, market_cap_1, symbol2, market_cap_2)
-        DO UPDATE SET 
-        market_cap_1 = EXCLUDED.market_cap_1,
-        market_cap_2 = EXCLUDED.market_cap_2,
-        most_recent_coint_pct = EXCLUDED.most_recent_coint_pct,
-        recent_coint_pct = EXCLUDED.recent_coint_pct,
-        hist_coint_pct = EXCLUDED.hist_coint_pct,
-        r_squared = EXCLUDED.r_squared,
-        ols_constant = EXCLUDED.ols_constant,
-        ols_coeff = EXCLUDED.ols_coeff,
-        last_updated = EXCLUDED.last_updated;
-        """
-        cursor.execute(insert_data_query)
-        conn.commit()
-        print(f"coin_signal_api_output updated successfully.")
-    except Exception as e:
-        print(f"Failed to get table: {str(e)}")
-        conn.rollback()
-    finally:
-        cursor.close()
