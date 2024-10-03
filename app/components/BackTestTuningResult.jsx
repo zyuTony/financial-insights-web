@@ -148,6 +148,13 @@ const genericChartOptions = {
   rightPriceScale: { borderColor: "rgba(197, 203, 206, 1)" },
   leftPriceScale: { borderColor: "rgba(197, 203, 206, 1)", visible: true },
   timeScale: { borderColor: "rgba(197, 203, 206, 1)" },
+  watermark: {
+    visible: true,
+    fontSize: 24,
+    horzAlign: "right",
+    vertAlign: "top",
+    color: "rgba(33, 56, 77, 0.5)",
+  },
 };
 
 // Line colors
@@ -169,8 +176,6 @@ const baselineReturnLineColors = [
 
 const legendStyle = `position: absolute; left: 80px; top: 12px; z-index: 1; font-size: 14px; font-family: sans-serif; line-height: 18px; font-weight: 300; background-color: rgba(255, 255, 255, 0.23); padding: 4px;`;
 
-const ohlcLegendStyle = `position: absolute; left: 80px; top: 12px; z-index: 1; font-size: 14px; font-family: sans-serif; line-height: 18px; font-weight: 300; background-color: rgba(255, 255, 255, 0.23); padding: 4px;`;
-
 const BackTestTuningResult = ({
   backtestPerformancesOutput,
   backtestChartsOutput,
@@ -178,6 +183,7 @@ const BackTestTuningResult = ({
   selectedSymbols,
   selectedStrats,
 }) => {
+  const showOHLCChart = 0;
   const chartContainerRef = useRef();
   const ohlcChartContainerRef = useRef();
   const { stratReturn, baselineReturn } = usePerformancesData(
@@ -188,22 +194,97 @@ const BackTestTuningResult = ({
   console.log(allMarkers);
 
   useEffect(() => {
-    if (Object.keys(stratReturn).length === 0) return; // break if no data
+    if (!stratReturn || Object.keys(stratReturn).length === 0) return; // break if no data
     const chartContainer = chartContainerRef.current; // hold the mounted div object
-    const ohlcChartContainer = ohlcChartContainerRef.current;
+
     chartContainer.innerHTML = ""; // clear div in case not empty
-    ohlcChartContainer.innerHTML = ""; // clear div in case not empty
 
     //---- CHART CHART CHART CHART CHART -----//
     const chart = createChart(chartContainer, {
       ...genericChartOptions,
       height: 400,
+      watermark: {
+        ...genericChartOptions.watermark,
+        text: "R60D Strat Returns vs Price Change",
+      },
     });
 
-    const ohlcChart = createChart(chartContainer, {
-      ...genericChartOptions,
-      height: 200,
-    });
+    let ohlcChart;
+    if (showOHLCChart) {
+      const ohlcChartContainer = ohlcChartContainerRef.current;
+      ohlcChartContainer.innerHTML = ""; // clear div in case not empty
+      ohlcChart = createChart(chartContainer, {
+        ...genericChartOptions,
+        height: 200,
+        watermark: {
+          ...genericChartOptions.watermark,
+          text: "OHLC Chart & Trades",
+        },
+      });
+
+      Object.keys(chartOHLC).forEach((key, index) => {
+        const [symbol, startDate, endDate] = key.split("_");
+        if (selectedSymbols.length === 0 || selectedSymbols.includes(symbol)) {
+          candlestickSeries[key] = ohlcChart.addCandlestickSeries({
+            upColor: "#26a69a",
+            downColor: "#ef5350",
+            borderVisible: false,
+            wickUpColor: "#26a69a",
+            wickDownColor: "#ef5350",
+            priceScaleId: index % 2 === 1 ? "left" : "right",
+          });
+          candlestickSeries[key].setData(chartOHLC[key]);
+
+          // Add markers
+          const filteredMarkers = allMarkers.filter(
+            (marker) => marker.symbol === symbol
+          );
+          console.log(filteredMarkers);
+          candlestickSeries[key].setMarkers(filteredMarkers);
+        }
+      });
+
+      ohlcChart.timeScale().fitContent();
+      // Add legend for OHLC chart
+      const ohlcLegend = document.createElement("div");
+
+      const ohlcLegendStyle = `position: absolute; left: 80px; top: 400px; z-index: 1; font-size: 14px; font-family: sans-serif; line-height: 18px; font-weight: 300; background-color: rgba(255, 255, 255, 0.23); padding: 4px;`;
+      ohlcLegend.style = ohlcLegendStyle;
+      let ohlcLegendHTML = "";
+
+      Object.keys(candlestickSeries).forEach((key, index) => {
+        ohlcLegendHTML += `
+        <div>OHLC_${key}: 
+          <span style="color: #26a69a;">O</span> <span id="open_${key}"></span> 
+          <span style="color: #26a69a;">H</span> <span id="high_${key}"></span> 
+          <span style="color: #ef5350;">L</span> <span id="low_${key}"></span> 
+          <span style="color: #ef5350;">C</span> <span id="close_${key}"></span>
+        </div>
+      `;
+      });
+      ohlcLegend.innerHTML = ohlcLegendHTML;
+      chartContainer.appendChild(ohlcLegend);
+
+      // Interactive OHLC legend values on crosshair move
+      ohlcChart.subscribeCrosshairMove((param) => {
+        if (param.time) {
+          Object.keys(candlestickSeries).forEach((key) => {
+            const data = param.seriesData.get(candlestickSeries[key]);
+            console.log(data);
+            if (data) {
+              document.getElementById(`open_${key}`).textContent =
+                data.open.toFixed(2);
+              document.getElementById(`high_${key}`).textContent =
+                data.high.toFixed(2);
+              document.getElementById(`low_${key}`).textContent =
+                data.low.toFixed(2);
+              document.getElementById(`close_${key}`).textContent =
+                data.close.toFixed(2);
+            }
+          });
+        }
+      });
+    }
 
     //----- DATA SERIES  DATA SERIES  DATA SERIES  DATA SERIES  DATA SERIES -----//
     const stratReturnSeries = {};
@@ -244,30 +325,6 @@ const BackTestTuningResult = ({
       }
     });
 
-    console.log(chartOHLC);
-    // Add OHLC chart
-    Object.keys(chartOHLC).forEach((key, index) => {
-      const [symbol, startDate, endDate] = key.split("_");
-      if (selectedSymbols.length === 0 || selectedSymbols.includes(symbol)) {
-        candlestickSeries[key] = ohlcChart.addCandlestickSeries({
-          upColor: "#26a69a",
-          downColor: "#ef5350",
-          borderVisible: false,
-          wickUpColor: "#26a69a",
-          wickDownColor: "#ef5350",
-          priceScaleId: index % 2 === 1 ? "left" : "right",
-        });
-        candlestickSeries[key].setData(chartOHLC[key]);
-
-        // Add markers
-        const filteredMarkers = allMarkers.filter(
-          (marker) => marker.symbol === symbol
-        );
-        console.log(filteredMarkers);
-        candlestickSeries[key].setMarkers(filteredMarkers);
-      }
-    });
-
     // Add y=0 axis
     const zeroLine = chart.addLineSeries({
       color: "rgba(0, 0, 0, 1)",
@@ -294,18 +351,17 @@ const BackTestTuningResult = ({
 
     // Fit the charts to full space
     chart.timeScale().fitContent();
-    ohlcChart.timeScale().fitContent();
 
-    // Sync scales for the 2 charts
-    const syncTimeScales = (sourceChart, targetChart) => {
-      sourceChart.timeScale().subscribeVisibleTimeRangeChange(() => {
-        const timeRange = sourceChart.timeScale().getVisibleRange();
-        targetChart.timeScale().setVisibleRange(timeRange);
-      });
-    };
+    // // Sync scales for the 2 charts
+    // const syncTimeScales = (sourceChart, targetChart) => {
+    //   sourceChart.timeScale().subscribeVisibleTimeRangeChange(() => {
+    //     const timeRange = sourceChart.timeScale().getVisibleRange();
+    //     targetChart.timeScale().setVisibleRange(timeRange);
+    //   });
+    // };
 
-    syncTimeScales(chart, ohlcChart);
-    syncTimeScales(ohlcChart, chart);
+    // syncTimeScales(chart, ohlcChart);
+    // syncTimeScales(ohlcChart, chart);
 
     //----- LEGEND LEGEND LEGEND LEGEND LEGEND LEGEND -----//
 
@@ -326,24 +382,6 @@ const BackTestTuningResult = ({
     });
     legend.innerHTML = legendHTML;
     chartContainer.appendChild(legend);
-
-    // Add legend for OHLC chart
-    const ohlcLegend = document.createElement("div");
-    ohlcLegend.style = ohlcLegendStyle;
-    let ohlcLegendHTML = "";
-
-    Object.keys(candlestickSeries).forEach((key, index) => {
-      ohlcLegendHTML += `
-      <div>OHLC_${key}: 
-        <span style="color: #26a69a;">O</span> <span id="open_${key}"></span> 
-        <span style="color: #26a69a;">H</span> <span id="high_${key}"></span> 
-        <span style="color: #ef5350;">L</span> <span id="low_${key}"></span> 
-        <span style="color: #ef5350;">C</span> <span id="close_${key}"></span>
-      </div>
-    `;
-    });
-    ohlcLegend.innerHTML = ohlcLegendHTML;
-    ohlcChartContainerRef.current.appendChild(ohlcLegend);
 
     // Interactive legend values on crosshair move
     chart.subscribeCrosshairMove((param) => {
@@ -369,30 +407,12 @@ const BackTestTuningResult = ({
       }
     });
 
-    // Interactive OHLC legend values on crosshair move
-    ohlcChart.subscribeCrosshairMove((param) => {
-      if (param.time) {
-        Object.keys(candlestickSeries).forEach((key) => {
-          const data = param.seriesData.get(candlestickSeries[key]);
-          console.log(data);
-          if (data) {
-            document.getElementById(`open_${key}`).textContent =
-              data.open.toFixed(2);
-            document.getElementById(`high_${key}`).textContent =
-              data.high.toFixed(2);
-            document.getElementById(`low_${key}`).textContent =
-              data.low.toFixed(2);
-            document.getElementById(`close_${key}`).textContent =
-              data.close.toFixed(2);
-          }
-        });
-      }
-    });
-
     //useEffect ends
     return () => {
       chart.remove();
-      ohlcChart.remove();
+      if (showOHLCChart && ohlcChart) {
+        ohlcChart.remove();
+      }
     };
   }, [
     stratReturn,
@@ -403,7 +423,7 @@ const BackTestTuningResult = ({
     selectedStrats,
   ]);
 
-  if (Object.keys(stratReturn).length === 0) {
+  if (!stratReturn || Object.keys(stratReturn).length === 0) {
     return <div>No data available</div>;
   }
 
@@ -417,14 +437,16 @@ const BackTestTuningResult = ({
           marginTop: "20px", // Add margin to move the chart down
         }}
       />
-      <div
-        ref={ohlcChartContainerRef}
-        style={{
-          width: "1200px",
-          position: "relative",
-          marginTop: "20px", // Add margin to move the chart down
-        }}
-      />
+      {showOHLCChart && (
+        <div
+          ref={ohlcChartContainerRef}
+          style={{
+            width: "1200px",
+            position: "relative",
+            marginTop: "20px",
+          }}
+        />
+      )}
     </div>
   );
 };
