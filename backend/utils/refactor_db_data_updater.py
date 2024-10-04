@@ -10,7 +10,7 @@ import logging
 from datetime import datetime
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s | %(levelname)8s | %(message)s',
     datefmt='%Y-%m-%d %H:%M' #datefmt='%Y-%m-%d %H:%M:%S'
 )
@@ -637,6 +637,10 @@ class avan_stock_income_statement_db_refresher(db_refresher):
             net_income = EXCLUDED.net_income;
         """
     def _data_transformation(self, file_path):
+        # for each symbol, for a year X , add up the 3 quarterly report
+        # from year X. Then take those away from the year X annual report,
+        # to get the 4th quarter report for year X. keep the same fiscalDateEnding but 
+        # update the rest of the data with above methods
         try:
             with open(file_path, 'r') as file:
                 data = json.load(file)
@@ -646,51 +650,88 @@ class avan_stock_income_statement_db_refresher(db_refresher):
                 return None
 
             symbol = data.get("symbol")
-            balance_sheet_data = data.get("quarterlyReports", [])
+            annual_reports = data.get("annualReports", [])
+            quarterly_reports = data.get("quarterlyReports", [])
             
-            if not symbol or not balance_sheet_data:
+            if not symbol or not annual_reports or not quarterly_reports:
                 logging.warning(f"Missing required data in {file_path}. Skipping.")
                 return None
 
-            outputs = []
-            for item in balance_sheet_data:
-                output = (
-                    symbol,
-                    convert_to_date(item.get("fiscalDateEnding")),
-                    item.get("reportedCurrency"),
-                    convert_to_float(item.get("grossProfit")),
-                    convert_to_float(item.get("totalRevenue")),
-                    convert_to_float(item.get("costOfRevenue")),
-                    convert_to_float(item.get("costofGoodsAndServicesSold")),
-                    convert_to_float(item.get("operatingIncome")),
-                    convert_to_float(item.get("sellingGeneralAndAdministrative")),
-                    convert_to_float(item.get("researchAndDevelopment")),
-                    convert_to_float(item.get("operatingExpenses")),
-                    convert_to_float(item.get("investmentIncomeNet")),
-                    convert_to_float(item.get("netInterestIncome")),
-                    convert_to_float(item.get("interestIncome")),
-                    convert_to_float(item.get("interestExpense")),
-                    convert_to_float(item.get("nonInterestIncome")),
-                    convert_to_float(item.get("otherNonOperatingIncome")),
-                    convert_to_float(item.get("depreciation")),
-                    convert_to_float(item.get("depreciationAndAmortization")),
-                    convert_to_float(item.get("incomeBeforeTax")),
-                    convert_to_float(item.get("incomeTaxExpense")),
-                    convert_to_float(item.get("interestAndDebtExpense")),
-                    convert_to_float(item.get("netIncomeFromContinuingOperations")),
-                    convert_to_float(item.get("comprehensiveIncomeNetOfTax")),
-                    convert_to_float(item.get("ebit")),
-                    convert_to_float(item.get("ebitda")),
-                    convert_to_float(item.get("netIncome"))
-                )
-                outputs.append(output)
-            return outputs 
+            outputs = {}
+            
+            # Process annual reports
+            for annual_report in annual_reports:
+                fiscal_year_end = convert_to_date(annual_report.get("fiscalDateEnding"))
+                
+                # Find the corresponding quarterly reports for this fiscal year
+                year_quarterly_reports = [
+                    q for q in quarterly_reports
+                    if convert_to_date(q.get("fiscalDateEnding")).year == fiscal_year_end.year
+                ]
+                
+                # Only calculate the 4th quarter when there are exactly 3 quarterly reports
+                if len(year_quarterly_reports) == 3:
+                    q4_report = self._calculate_q4_report(annual_report, year_quarterly_reports)
+                    key = (symbol, q4_report.get("fiscalDateEnding"))
+                    outputs[key] = self._create_output_tuple(symbol, q4_report)
+            
+            # Add all quarterly reports
+            for quarterly_report in quarterly_reports:
+                key = (symbol, quarterly_report.get("fiscalDateEnding"))
+                outputs[key] = self._create_output_tuple(symbol, quarterly_report)
+            
+            return list(outputs.values())
         except json.JSONDecodeError:
             logging.error(f"JSON decoding failed for {file_path}. File might be empty or invalid.")
             return None
         except Exception as e:
             logging.error(f"Data transformation failed for {file_path}: {e}")
             return None
+        
+    def _calculate_q4_report(self, annual_report, quarterly_reports):
+        q4_report = {
+            "fiscalDateEnding": annual_report["fiscalDateEnding"],
+            "reportedCurrency": annual_report["reportedCurrency"],
+        }
+        
+        for key in annual_report.keys():
+            if key not in ["fiscalDateEnding", "reportedCurrency"]:
+                annual_value = float(annual_report[key]) if annual_report[key] not in ['None', None] else 0
+                quarterly_sum = sum(float(q.get(key)) if q.get(key) not in ['None', None] else 0 for q in quarterly_reports)
+                q4_report[key] = str(annual_value - quarterly_sum)
+        
+        return q4_report
+
+    def _create_output_tuple(self, symbol, report):
+        return (
+            symbol,
+            convert_to_date(report.get("fiscalDateEnding")),
+            report.get("reportedCurrency"),
+            convert_to_float(report.get("grossProfit")),
+            convert_to_float(report.get("totalRevenue")),
+            convert_to_float(report.get("costOfRevenue")),
+            convert_to_float(report.get("costofGoodsAndServicesSold")),
+            convert_to_float(report.get("operatingIncome")),
+            convert_to_float(report.get("sellingGeneralAndAdministrative")),
+            convert_to_float(report.get("researchAndDevelopment")),
+            convert_to_float(report.get("operatingExpenses")),
+            convert_to_float(report.get("investmentIncomeNet")),
+            convert_to_float(report.get("netInterestIncome")),
+            convert_to_float(report.get("interestIncome")),
+            convert_to_float(report.get("interestExpense")),
+            convert_to_float(report.get("nonInterestIncome")),
+            convert_to_float(report.get("otherNonOperatingIncome")),
+            convert_to_float(report.get("depreciation")),
+            convert_to_float(report.get("depreciationAndAmortization")),
+            convert_to_float(report.get("incomeBeforeTax")),
+            convert_to_float(report.get("incomeTaxExpense")),
+            convert_to_float(report.get("interestAndDebtExpense")),
+            convert_to_float(report.get("netIncomeFromContinuingOperations")),
+            convert_to_float(report.get("comprehensiveIncomeNetOfTax")),
+            convert_to_float(report.get("ebit")),
+            convert_to_float(report.get("ebitda")),
+            convert_to_float(report.get("netIncome"))
+        )
         
 class avan_stock_balance_sheet_db_refresher(db_refresher):
     def __init__(self, *args):
@@ -805,57 +846,61 @@ class avan_stock_balance_sheet_db_refresher(db_refresher):
                 return None
 
             symbol = data.get("symbol")
-            balance_sheet_data = data.get("quarterlyReports", [])
+            quarterly_reports = data.get("quarterlyReports", [])
+            yearly_reports = data.get("annualReports", [])
             
-            if not symbol or not balance_sheet_data:
+            if not symbol or (not quarterly_reports and not yearly_reports):
                 logging.warning(f"Missing required data in {file_path}. Skipping.")
                 return None
 
-            outputs = []
-            for item in balance_sheet_data:
-                output = (
-                    symbol,
-                    convert_to_date(item.get("fiscalDateEnding")),
-                    item.get("reportedCurrency"),
-                    convert_to_float(item.get("totalAssets")),
-                    convert_to_float(item.get("totalCurrentAssets")),
-                    convert_to_float(item.get("cashAndCashEquivalentsAtCarryingValue")),
-                    convert_to_float(item.get("cashAndShortTermInvestments")),
-                    convert_to_float(item.get("inventory")),
-                    convert_to_float(item.get("currentNetReceivables")),
-                    convert_to_float(item.get("totalNonCurrentAssets")),
-                    convert_to_float(item.get("propertyPlantEquipment")),
-                    convert_to_float(item.get("accumulatedDepreciationAmortizationPPE")),
-                    convert_to_float(item.get("intangibleAssets")),
-                    convert_to_float(item.get("intangibleAssetsExcludingGoodwill")),
-                    convert_to_float(item.get("goodwill")),
-                    convert_to_float(item.get("investments")),
-                    convert_to_float(item.get("longTermInvestments")),
-                    convert_to_float(item.get("shortTermInvestments")),
-                    convert_to_float(item.get("otherCurrentAssets")),
-                    convert_to_float(item.get("otherNonCurrentAssets")),
-                    convert_to_float(item.get("totalLiabilities")),
-                    convert_to_float(item.get("totalCurrentLiabilities")),
-                    convert_to_float(item.get("currentAccountsPayable")),
-                    convert_to_float(item.get("deferredRevenue")),
-                    convert_to_float(item.get("currentDebt")),
-                    convert_to_float(item.get("shortTermDebt")),
-                    convert_to_float(item.get("totalNonCurrentLiabilities")),
-                    convert_to_float(item.get("capitalLeaseObligations")),
-                    convert_to_float(item.get("longTermDebt")),
-                    convert_to_float(item.get("currentLongTermDebt")),
-                    convert_to_float(item.get("longTermDebtNoncurrent")),
-                    convert_to_float(item.get("shortLongTermDebtTotal")),
-                    convert_to_float(item.get("otherCurrentLiabilities")),
-                    convert_to_float(item.get("otherNonCurrentLiabilities")),
-                    convert_to_float(item.get("totalShareholderEquity")),
-                    convert_to_float(item.get("treasuryStock")),
-                    convert_to_float(item.get("retainedEarnings")),
-                    convert_to_float(item.get("commonStock")),
-                    convert_to_float(item.get("commonStockSharesOutstanding"))
-                )
-                outputs.append(output)
-            return outputs
+            outputs = {}
+            for report_list in [quarterly_reports, yearly_reports]:
+                for item in report_list:
+                    fiscal_date = convert_to_date(item.get("fiscalDateEnding"))
+                    if (symbol, fiscal_date) not in outputs:
+                        outputs[(symbol, fiscal_date)] = (
+                            symbol,
+                            fiscal_date,
+                            item.get("reportedCurrency"),
+                            convert_to_float(item.get("totalAssets")),
+                            convert_to_float(item.get("totalCurrentAssets")),
+                            convert_to_float(item.get("cashAndCashEquivalentsAtCarryingValue")),
+                            convert_to_float(item.get("cashAndShortTermInvestments")),
+                            convert_to_float(item.get("inventory")),
+                            convert_to_float(item.get("currentNetReceivables")),
+                            convert_to_float(item.get("totalNonCurrentAssets")),
+                            convert_to_float(item.get("propertyPlantEquipment")),
+                            convert_to_float(item.get("accumulatedDepreciationAmortizationPPE")),
+                            convert_to_float(item.get("intangibleAssets")),
+                            convert_to_float(item.get("intangibleAssetsExcludingGoodwill")),
+                            convert_to_float(item.get("goodwill")),
+                            convert_to_float(item.get("investments")),
+                            convert_to_float(item.get("longTermInvestments")),
+                            convert_to_float(item.get("shortTermInvestments")),
+                            convert_to_float(item.get("otherCurrentAssets")),
+                            convert_to_float(item.get("otherNonCurrentAssets")),
+                            convert_to_float(item.get("totalLiabilities")),
+                            convert_to_float(item.get("totalCurrentLiabilities")),
+                            convert_to_float(item.get("currentAccountsPayable")),
+                            convert_to_float(item.get("deferredRevenue")),
+                            convert_to_float(item.get("currentDebt")),
+                            convert_to_float(item.get("shortTermDebt")),
+                            convert_to_float(item.get("totalNonCurrentLiabilities")),
+                            convert_to_float(item.get("capitalLeaseObligations")),
+                            convert_to_float(item.get("longTermDebt")),
+                            convert_to_float(item.get("currentLongTermDebt")),
+                            convert_to_float(item.get("longTermDebtNoncurrent")),
+                            convert_to_float(item.get("shortLongTermDebtTotal")),
+                            convert_to_float(item.get("otherCurrentLiabilities")),
+                            convert_to_float(item.get("otherNonCurrentLiabilities")),
+                            convert_to_float(item.get("totalShareholderEquity")),
+                            convert_to_float(item.get("treasuryStock")),
+                            convert_to_float(item.get("retainedEarnings")),
+                            convert_to_float(item.get("commonStock")),
+                            convert_to_float(item.get("commonStockSharesOutstanding"))
+                        )
+
+            return list(outputs.values())
         except json.JSONDecodeError:
             logging.error(f"JSON decoding failed for {file_path}. File might be empty or invalid.")
             return None

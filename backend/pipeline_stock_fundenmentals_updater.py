@@ -29,23 +29,23 @@ Cadence: AUTOMATIC WEEKLY
 #                                             additional_tickers=[])
 # api_getter.download_data()
 
-# insert to db
-db = avan_stock_income_statement_db_refresher(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD, "stock_income_statement")
-db.connect()
-db.create_table()
-for filename in os.listdir(AVAN_INCOME_STATEMENT_JSON_PATH):
-    if filename.endswith('.json'):
-        file_path = os.path.join(AVAN_INCOME_STATEMENT_JSON_PATH, filename)
-        db.insert_data(file_path)
-db.close() 
+# # insert to db
+# db = avan_stock_income_statement_db_refresher(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD, "stock_income_statement")
+# db.connect()
+# db.create_table()
+# for filename in os.listdir(AVAN_INCOME_STATEMENT_JSON_PATH):
+#     if filename.endswith('.json'):
+#         file_path = os.path.join(AVAN_INCOME_STATEMENT_JSON_PATH, filename)
+#         db.insert_data(file_path)
+# db.close() 
 
-# download json
-api_getter = avan_stock_balance_sheet_api_getter(api_key=avan_api_key,
-                                            data_save_path=AVAN_BALANCE_SHEET_JSON_PATH,
-                                            start_date=None,# not applicable
-                                            end_date=None,# not applicable
-                                            additional_tickers=[])
-api_getter.download_data()
+# # download json
+# api_getter = avan_stock_balance_sheet_api_getter(api_key=avan_api_key,
+#                                             data_save_path=AVAN_BALANCE_SHEET_JSON_PATH,
+#                                             start_date=None,# not applicable
+#                                             end_date=None,# not applicable
+#                                             additional_tickers=[])
+# api_getter.download_data()
 
 # insert to db
 db = avan_stock_balance_sheet_db_refresher(DB_NAME, DB_HOST, DB_USERNAME, DB_PASSWORD, "stock_balance_sheet")
