@@ -96,6 +96,4 @@ for filename in os.listdir(AVAN_DAILY_JSON_PATH):
         file_path = os.path.join(AVAN_DAILY_JSON_PATH, filename)
         db.insert_data(file_path)
 db.close()
-
- 
  

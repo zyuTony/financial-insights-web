@@ -6,6 +6,7 @@ from datetime import datetime
 from requests.exceptions import ConnectionError, Timeout, TooManyRedirects
 import requests
 import time
+import os
 from binance.client import Client
 
 logging.basicConfig(
@@ -18,10 +19,6 @@ class api_getter(ABC):
     def __init__(self, api_key, data_save_path):
         self.api_key = api_key
         self.data_save_path = data_save_path
-    
-    @abstractmethod
-    def _get_download_symbol_list(self):
-        pass
     
     @abstractmethod
     def download_data(self):
@@ -209,7 +206,30 @@ class avan_stock_daily_ohlc_api_getter(api_getter):
             else:
                 logging.error(f"Error fetching {symbol}: {response.status_code}")
             time.sleep(AVAN_SLEEP_TIME)      
-        
+
+class avan_stock_selected_daily_ohlc_api_getter(api_getter):
+    
+    def __init__(self, api_key, data_save_path, start_date, end_date, symbols):
+        super().__init__(api_key, data_save_path)
+        self.start_date = None
+        self.end_date = None 
+        self.symbols = symbols
+
+    def download_data(self):
+        for symbol in self.symbols:
+            url = f'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY_ADJUSTED&symbol={symbol}&outputsize=full&apikey={self.api_key}'
+
+            response = requests.get(url)
+            json_file_path = self.data_save_path + f'/{symbol}.json'
+            if response.status_code == 200:
+                data = response.json()
+                with open(json_file_path, 'w') as file:
+                    json.dump(data, file, indent=4)
+                logging.info(f"{symbol} saved to {json_file_path}")
+            else:
+                logging.error(f"Error fetching {symbol}: {response.status_code}")
+            time.sleep(AVAN_SLEEP_TIME)
+
 class avan_stock_overview_api_getter(avan_stock_daily_ohlc_api_getter):
     def download_data(self):
         symbols = self._get_download_symbol_list()
@@ -260,3 +280,69 @@ class avan_stock_balance_sheet_api_getter(avan_stock_daily_ohlc_api_getter):
             else:
                 logging.error(f"Error fetching {symbol}: {response.status_code}")
             time.sleep(AVAN_SLEEP_TIME)  
+            
+class avan_stock_cash_flow_api_getter(avan_stock_daily_ohlc_api_getter):
+    def download_data(self):
+        symbols = self._get_download_symbol_list()
+        for symbol in symbols:
+            url = f'https://www.alphavantage.co/query?function=CASH_FLOW&symbol={symbol}&apikey={self.api_key}'
+
+            response = requests.get(url)
+            json_file_path = self.data_save_path + f'/{symbol}.json'
+            if response.status_code == 200:
+                data = response.json()
+                with open(json_file_path, 'w') as file:
+                    json.dump(data, file, indent=4)
+                logging.info(f"{symbol} saved to {json_file_path}")
+            else:
+                logging.error(f"Error fetching {symbol}: {response.status_code}")
+            time.sleep(AVAN_SLEEP_TIME)  
+            
+class avan_stock_economic_api_getter(api_getter):
+    def __init__(self, api_key, data_save_path):
+        super().__init__(api_key, data_save_path) 
+        
+    def download_data(self):
+        functions = ['REAL_GDP', 'FEDERAL_FUNDS_RATE', 'CPI', 'INFLATION', 
+                     'RETAIL_SALES', 'DURABLES', 'UNEMPLOYMENT', 'NONFARM_PAYROLL']
+        intervals = ['quarterly', 'monthly', 'monthly' , None, None, None, None, None]
+        
+        for function, interval in zip(functions, intervals):
+            if interval is None:
+                url = f"https://www.alphavantage.co/query?function={function}&apikey={self.api_key}"
+            url = f"https://www.alphavantage.co/query?function={function}&interval={interval}&apikey={self.api_key}"
+            response = requests.get(url)
+            json_file_path = self.data_save_path + f'/{function}.json'
+            if response.status_code == 200:
+                data = response.json()
+                with open(json_file_path, 'w') as file:
+                    json.dump(data, file, indent=4)
+                logging.info(f"{function} saved to {json_file_path}")
+            else:
+                logging.error(f"Error fetching {function}: {response.status_code}")
+            time.sleep(AVAN_SLEEP_TIME)  
+
+    def aggregate_economic_data(self):
+        economic_data = {}
+        for filename in os.listdir(self.data_save_path):
+            if filename.endswith('.json'):
+                with open(os.path.join(self.data_save_path, filename), 'r') as file:
+                    data = json.load(file)
+                    col_name = os.path.splitext(filename)[0]  # Use filename without extension as column name
+                    if 'data' in data:
+                        for entry in data['data']:
+                            date = entry.get('date')
+                            value = entry.get('value')
+                            if date and value:
+                                if date not in economic_data:
+                                    economic_data[date] = {}
+                                economic_data[date][col_name] = value
+        
+        # Save aggregated data as JSON
+        output_file = os.path.join(self.data_save_path, 'aggregated_economic_data.json')
+        with open(output_file, 'w') as f:
+            json.dump(economic_data, f, indent=4)
+        
+        logging.info(f"Aggregated economic data saved to {output_file}")
+        return economic_data
+        

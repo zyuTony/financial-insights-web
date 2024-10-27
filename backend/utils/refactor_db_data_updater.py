@@ -101,6 +101,18 @@ class db_refresher(ABC):
         finally:
             cursor.close()
     
+    def delete_table(self):
+        cursor = self.conn.cursor()
+        try:
+            cursor.execute(f"DROP TABLE IF EXISTS {self.table_name}")
+            self.conn.commit()
+            logging.info(f"{self.table_name} deleted successfully.")
+        except Exception as e:
+            logging.error(f"Failed to delete table: {str(e)}")
+            self.conn.rollback()
+        finally:
+            cursor.close()
+    
     @abstractmethod
     def _data_transformation(self, file_path):
         pass
@@ -636,6 +648,7 @@ class avan_stock_income_statement_db_refresher(db_refresher):
             ebitda = EXCLUDED.ebitda,
             net_income = EXCLUDED.net_income;
         """
+    
     def _data_transformation(self, file_path):
         # for each symbol, for a year X , add up the 3 quarterly report
         # from year X. Then take those away from the year X annual report,
@@ -689,6 +702,7 @@ class avan_stock_income_statement_db_refresher(db_refresher):
             return None
         
     def _calculate_q4_report(self, annual_report, quarterly_reports):
+        '''get 4th quarter value by use annual value - sum of three quarterly values'''
         q4_report = {
             "fiscalDateEnding": annual_report["fiscalDateEnding"],
             "reportedCurrency": annual_report["reportedCurrency"],
@@ -853,57 +867,322 @@ class avan_stock_balance_sheet_db_refresher(db_refresher):
                 logging.warning(f"Missing required data in {file_path}. Skipping.")
                 return None
 
+            # List of fields to extract and convert
+            fields = [
+                "reportedCurrency",
+                "totalAssets",
+                "totalCurrentAssets",
+                "cashAndCashEquivalentsAtCarryingValue",
+                "cashAndShortTermInvestments",
+                "inventory",
+                "currentNetReceivables",
+                "totalNonCurrentAssets",
+                "propertyPlantEquipment",
+                "accumulatedDepreciationAmortizationPPE",
+                "intangibleAssets",
+                "intangibleAssetsExcludingGoodwill",
+                "goodwill",
+                "investments",
+                "longTermInvestments",
+                "shortTermInvestments",
+                "otherCurrentAssets",
+                "otherNonCurrentAssets",
+                "totalLiabilities",
+                "totalCurrentLiabilities",
+                "currentAccountsPayable",
+                "deferredRevenue",
+                "currentDebt",
+                "shortTermDebt",
+                "totalNonCurrentLiabilities",
+                "capitalLeaseObligations",
+                "longTermDebt",
+                "currentLongTermDebt",
+                "longTermDebtNoncurrent",
+                "shortLongTermDebtTotal",
+                "otherCurrentLiabilities",
+                "otherNonCurrentLiabilities",
+                "totalShareholderEquity",
+                "treasuryStock",
+                "retainedEarnings",
+                "commonStock",
+                "commonStockSharesOutstanding"
+            ]
+
             outputs = {}
             for report_list in [quarterly_reports, yearly_reports]:
                 for item in report_list:
                     fiscal_date = convert_to_date(item.get("fiscalDateEnding"))
-                    if (symbol, fiscal_date) not in outputs:
-                        outputs[(symbol, fiscal_date)] = (
-                            symbol,
-                            fiscal_date,
-                            item.get("reportedCurrency"),
-                            convert_to_float(item.get("totalAssets")),
-                            convert_to_float(item.get("totalCurrentAssets")),
-                            convert_to_float(item.get("cashAndCashEquivalentsAtCarryingValue")),
-                            convert_to_float(item.get("cashAndShortTermInvestments")),
-                            convert_to_float(item.get("inventory")),
-                            convert_to_float(item.get("currentNetReceivables")),
-                            convert_to_float(item.get("totalNonCurrentAssets")),
-                            convert_to_float(item.get("propertyPlantEquipment")),
-                            convert_to_float(item.get("accumulatedDepreciationAmortizationPPE")),
-                            convert_to_float(item.get("intangibleAssets")),
-                            convert_to_float(item.get("intangibleAssetsExcludingGoodwill")),
-                            convert_to_float(item.get("goodwill")),
-                            convert_to_float(item.get("investments")),
-                            convert_to_float(item.get("longTermInvestments")),
-                            convert_to_float(item.get("shortTermInvestments")),
-                            convert_to_float(item.get("otherCurrentAssets")),
-                            convert_to_float(item.get("otherNonCurrentAssets")),
-                            convert_to_float(item.get("totalLiabilities")),
-                            convert_to_float(item.get("totalCurrentLiabilities")),
-                            convert_to_float(item.get("currentAccountsPayable")),
-                            convert_to_float(item.get("deferredRevenue")),
-                            convert_to_float(item.get("currentDebt")),
-                            convert_to_float(item.get("shortTermDebt")),
-                            convert_to_float(item.get("totalNonCurrentLiabilities")),
-                            convert_to_float(item.get("capitalLeaseObligations")),
-                            convert_to_float(item.get("longTermDebt")),
-                            convert_to_float(item.get("currentLongTermDebt")),
-                            convert_to_float(item.get("longTermDebtNoncurrent")),
-                            convert_to_float(item.get("shortLongTermDebtTotal")),
-                            convert_to_float(item.get("otherCurrentLiabilities")),
-                            convert_to_float(item.get("otherNonCurrentLiabilities")),
-                            convert_to_float(item.get("totalShareholderEquity")),
-                            convert_to_float(item.get("treasuryStock")),
-                            convert_to_float(item.get("retainedEarnings")),
-                            convert_to_float(item.get("commonStock")),
-                            convert_to_float(item.get("commonStockSharesOutstanding"))
-                        )
+                    key = (symbol, fiscal_date)
+                    if key not in outputs:
+                        # Initialize the record with symbol and fiscal_date
+                        record = [symbol, fiscal_date]
 
+                        # Loop over fields and extract values
+                        for field in fields:
+                            value = item.get(field)
+                            if field == "reportedCurrency":
+                                # Keep reportedCurrency as is
+                                record.append(value)
+                            else:
+                                # Convert other fields to float
+                                record.append(convert_to_float(value))
+
+                        outputs[key] = tuple(record)
+
+            return list(outputs.values())
+
+        except json.JSONDecodeError:
+            logging.error(f"JSON decoding failed for {file_path}. File might be empty or invalid.")
+            return None
+        except Exception as e:
+            logging.error(f"Data transformation failed for {file_path}: {e}")
+            return None
+
+class avan_stock_cash_flow_db_refresher(db_refresher):
+    '''handle all data insertion from OHLC data via alpha vantage api'''
+    def __init__(self, *args):
+        super().__init__(*args)
+        
+        self.table_creation_script = f"""
+        CREATE TABLE IF NOT EXISTS {self.table_name} (
+            symbol VARCHAR(10) NOT NULL,
+            fiscal_date_ending DATE NOT NULL,
+            reported_currency VARCHAR(10) NOT NULL,
+            operating_cashflow NUMERIC,
+            payments_for_operating_activities NUMERIC,
+            proceeds_from_operating_activities NUMERIC,
+            change_in_operating_liabilities NUMERIC,
+            change_in_operating_assets NUMERIC,
+            depreciation_depletion_and_amortization NUMERIC,
+            capital_expenditures NUMERIC,
+            change_in_receivables NUMERIC,
+            change_in_inventory NUMERIC,
+            profit_loss NUMERIC,
+            cashflow_from_investment NUMERIC,
+            cashflow_from_financing NUMERIC,
+            proceeds_from_repayments_of_short_term_debt NUMERIC,
+            payments_for_repurchase_of_common_stock NUMERIC,
+            payments_for_repurchase_of_equity NUMERIC,
+            payments_for_repurchase_of_preferred_stock NUMERIC,
+            dividend_payout NUMERIC,
+            dividend_payout_common_stock NUMERIC,
+            dividend_payout_preferred_stock NUMERIC,
+            proceeds_from_issuance_of_common_stock NUMERIC,
+            proceeds_from_issuance_of_long_term_debt_and_capital_securities_net NUMERIC,
+            proceeds_from_issuance_of_preferred_stock NUMERIC,
+            proceeds_from_repurchase_of_equity NUMERIC,
+            proceeds_from_sale_of_treasury_stock NUMERIC,
+            change_in_cash_and_cash_equivalents NUMERIC,
+            change_in_exchange_rate NUMERIC,
+            net_income NUMERIC,
+            PRIMARY KEY (symbol, fiscal_date_ending)
+        );
+        """
+        
+        self.data_insertion_script = f"""
+        INSERT INTO {self.table_name} (
+            symbol, fiscal_date_ending, reported_currency, operating_cashflow, 
+            payments_for_operating_activities, proceeds_from_operating_activities, 
+            change_in_operating_liabilities, change_in_operating_assets, 
+            depreciation_depletion_and_amortization, capital_expenditures, 
+            change_in_receivables, change_in_inventory, profit_loss, 
+            cashflow_from_investment, cashflow_from_financing, 
+            proceeds_from_repayments_of_short_term_debt, 
+            payments_for_repurchase_of_common_stock, payments_for_repurchase_of_equity, 
+            payments_for_repurchase_of_preferred_stock, dividend_payout, 
+            dividend_payout_common_stock, dividend_payout_preferred_stock, 
+            proceeds_from_issuance_of_common_stock, 
+            proceeds_from_issuance_of_long_term_debt_and_capital_securities_net, 
+            proceeds_from_issuance_of_preferred_stock, proceeds_from_repurchase_of_equity, 
+            proceeds_from_sale_of_treasury_stock, change_in_cash_and_cash_equivalents, 
+            change_in_exchange_rate, net_income
+        )
+        VALUES %s
+        ON CONFLICT (symbol, fiscal_date_ending)
+        DO UPDATE SET 
+            reported_currency = EXCLUDED.reported_currency,
+            operating_cashflow = EXCLUDED.operating_cashflow,
+            payments_for_operating_activities = EXCLUDED.payments_for_operating_activities,
+            proceeds_from_operating_activities = EXCLUDED.proceeds_from_operating_activities,
+            change_in_operating_liabilities = EXCLUDED.change_in_operating_liabilities,
+            change_in_operating_assets = EXCLUDED.change_in_operating_assets,
+            depreciation_depletion_and_amortization = EXCLUDED.depreciation_depletion_and_amortization,
+            capital_expenditures = EXCLUDED.capital_expenditures,
+            change_in_receivables = EXCLUDED.change_in_receivables,
+            change_in_inventory = EXCLUDED.change_in_inventory,
+            profit_loss = EXCLUDED.profit_loss,
+            cashflow_from_investment = EXCLUDED.cashflow_from_investment,
+            cashflow_from_financing = EXCLUDED.cashflow_from_financing,
+            proceeds_from_repayments_of_short_term_debt = EXCLUDED.proceeds_from_repayments_of_short_term_debt,
+            payments_for_repurchase_of_common_stock = EXCLUDED.payments_for_repurchase_of_common_stock,
+            payments_for_repurchase_of_equity = EXCLUDED.payments_for_repurchase_of_equity,
+            payments_for_repurchase_of_preferred_stock = EXCLUDED.payments_for_repurchase_of_preferred_stock,
+            dividend_payout = EXCLUDED.dividend_payout,
+            dividend_payout_common_stock = EXCLUDED.dividend_payout_common_stock,
+            dividend_payout_preferred_stock = EXCLUDED.dividend_payout_preferred_stock,
+            proceeds_from_issuance_of_common_stock = EXCLUDED.proceeds_from_issuance_of_common_stock,
+            proceeds_from_issuance_of_long_term_debt_and_capital_securities_net = EXCLUDED.proceeds_from_issuance_of_long_term_debt_and_capital_securities_net,
+            proceeds_from_issuance_of_preferred_stock = EXCLUDED.proceeds_from_issuance_of_preferred_stock,
+            proceeds_from_repurchase_of_equity = EXCLUDED.proceeds_from_repurchase_of_equity,
+            proceeds_from_sale_of_treasury_stock = EXCLUDED.proceeds_from_sale_of_treasury_stock,
+            change_in_cash_and_cash_equivalents = EXCLUDED.change_in_cash_and_cash_equivalents,
+            change_in_exchange_rate = EXCLUDED.change_in_exchange_rate,
+            net_income = EXCLUDED.net_income;
+        """
+    
+    def _data_transformation(self, file_path):
+        # for each symbol, for a year X , add up the 3 quarterly report
+        # from year X. Then take those away from the year X annual report,
+        # to get the 4th quarter report for year X. keep the same fiscalDateEnding but 
+        # update the rest of the data with above methods
+        try:
+            with open(file_path, 'r') as file:
+                data = json.load(file)
+            
+            if not data:
+                logging.warning(f"Empty data in {file_path}. Skipping.")
+                return None
+
+            symbol = data.get("symbol")
+            annual_reports = data.get("annualReports", [])
+            quarterly_reports = data.get("quarterlyReports", [])
+            
+            if not symbol or not annual_reports or not quarterly_reports:
+                logging.warning(f"Missing required data in {file_path}. Skipping.")
+                return None
+
+            outputs = {}
+            
+            # Process annual reports
+            for annual_report in annual_reports:
+                fiscal_year_end = convert_to_date(annual_report.get("fiscalDateEnding"))
+                
+                # Find the corresponding quarterly reports for this fiscal year
+                year_quarterly_reports = [
+                    q for q in quarterly_reports
+                    if convert_to_date(q.get("fiscalDateEnding")).year == fiscal_year_end.year
+                ]
+                
+                # Only calculate the 4th quarter when there are exactly 3 quarterly reports
+                if len(year_quarterly_reports) == 3:
+                    q4_report = self._calculate_q4_report(annual_report, year_quarterly_reports)
+                    key = (symbol, q4_report.get("fiscalDateEnding"))
+                    outputs[key] = self._create_output_tuple(symbol, q4_report)
+            
+            # Add all quarterly reports
+            for quarterly_report in quarterly_reports:
+                key = (symbol, quarterly_report.get("fiscalDateEnding"))
+                outputs[key] = self._create_output_tuple(symbol, quarterly_report)
+            
             return list(outputs.values())
         except json.JSONDecodeError:
             logging.error(f"JSON decoding failed for {file_path}. File might be empty or invalid.")
             return None
+        except Exception as e:
+            logging.error(f"Data transformation failed for {file_path}: {e}")
+            return None
+        
+    def _calculate_q4_report(self, annual_report, quarterly_reports):
+        '''get 4th quarter value by use annual value - sum of three quarterly values'''
+        q4_report = {
+            "fiscalDateEnding": annual_report["fiscalDateEnding"],
+            "reportedCurrency": annual_report["reportedCurrency"],
+        }
+        
+        for key in annual_report.keys():
+            if key not in ["fiscalDateEnding", "reportedCurrency"]:
+                annual_value = float(annual_report[key]) if annual_report[key] not in ['None', None] else 0
+                quarterly_sum = sum(float(q.get(key)) if q.get(key) not in ['None', None] else 0 for q in quarterly_reports)
+                q4_report[key] = str(annual_value - quarterly_sum)
+        
+        return q4_report
+
+    def _create_output_tuple(self, symbol, report):
+        return (
+            symbol,
+            convert_to_date(report.get("fiscalDateEnding")),
+            report.get("reportedCurrency"),
+            convert_to_float(report.get("operatingCashflow")),
+            convert_to_float(report.get("paymentsForOperatingActivities")),
+            convert_to_float(report.get("proceedsFromOperatingActivities")),
+            convert_to_float(report.get("changeInOperatingLiabilities")),
+            convert_to_float(report.get("changeInOperatingAssets")),
+            convert_to_float(report.get("depreciationDepletionAndAmortization")),
+            convert_to_float(report.get("capitalExpenditures")),
+            convert_to_float(report.get("changeInReceivables")),
+            convert_to_float(report.get("changeInInventory")),
+            convert_to_float(report.get("profitLoss")),
+            convert_to_float(report.get("cashflowFromInvestment")),
+            convert_to_float(report.get("cashflowFromFinancing")),
+            convert_to_float(report.get("proceedsFromRepaymentsOfShortTermDebt")),
+            convert_to_float(report.get("paymentsForRepurchaseOfCommonStock")),
+            convert_to_float(report.get("paymentsForRepurchaseOfEquity")),
+            convert_to_float(report.get("paymentsForRepurchaseOfPreferredStock")),
+            convert_to_float(report.get("dividendPayout")),
+            convert_to_float(report.get("dividendPayoutCommonStock")),
+            convert_to_float(report.get("dividendPayoutPreferredStock")),
+            convert_to_float(report.get("proceedsFromIssuanceOfCommonStock")),
+            convert_to_float(report.get("proceedsFromIssuanceOfLongTermDebtAndCapitalSecuritiesNet")),
+            convert_to_float(report.get("proceedsFromIssuanceOfPreferredStock")),
+            convert_to_float(report.get("proceedsFromRepurchaseOfEquity")),
+            convert_to_float(report.get("proceedsFromSaleOfTreasuryStock")),
+            convert_to_float(report.get("changeInCashAndCashEquivalents")),
+            convert_to_float(report.get("changeInExchangeRate")),
+            convert_to_float(report.get("netIncome"))
+        )
+
+class avan_stock_economic_db_refresher(db_refresher):
+    '''handle all data insertion from economic data via Alpha Vantage API'''
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.table_creation_script = f"""
+        CREATE TABLE IF NOT EXISTS {self.table_name} (
+            date DATE PRIMARY KEY,
+            CPI NUMERIC,
+            DURABLES NUMERIC,
+            FEDERAL_FUNDS_RATE NUMERIC,
+            NONFARM_PAYROLL NUMERIC,
+            REAL_GDP NUMERIC,
+            RETAIL_SALES NUMERIC,
+            UNEMPLOYMENT NUMERIC
+        );
+        """
+        
+        self.data_insertion_script = f"""
+        INSERT INTO {self.table_name} (
+            date, CPI, DURABLES, FEDERAL_FUNDS_RATE, NONFARM_PAYROLL,
+            REAL_GDP, RETAIL_SALES, UNEMPLOYMENT
+        ) VALUES %s
+        ON CONFLICT (date) DO UPDATE SET
+            CPI = EXCLUDED.CPI,
+            DURABLES = EXCLUDED.DURABLES,
+            FEDERAL_FUNDS_RATE = EXCLUDED.FEDERAL_FUNDS_RATE,
+            NONFARM_PAYROLL = EXCLUDED.NONFARM_PAYROLL,
+            REAL_GDP = EXCLUDED.REAL_GDP,
+            RETAIL_SALES = EXCLUDED.RETAIL_SALES,
+            UNEMPLOYMENT = EXCLUDED.UNEMPLOYMENT;
+        """
+        
+    def _data_transformation(self, file_path):
+        try:
+            with open(file_path, 'r') as file:
+                data = json.load(file)
+            
+            transformed_data = []
+            for date, values in data.items():
+                row = (
+                    date,
+                    convert_to_float(values.get('CPI')),
+                    convert_to_float(values.get('DURABLES')),
+                    convert_to_float(values.get('FEDERAL_FUNDS_RATE')),
+                    convert_to_float(values.get('NONFARM_PAYROLL')),
+                    convert_to_float(values.get('REAL_GDP')),
+                    convert_to_float(values.get('RETAIL_SALES')),
+                    convert_to_float(values.get('UNEMPLOYMENT'))
+                )
+                transformed_data.append(row)
+            
+            return transformed_data
         except Exception as e:
             logging.error(f"Data transformation failed for {file_path}: {e}")
             return None
