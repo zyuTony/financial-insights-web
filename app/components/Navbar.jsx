@@ -27,12 +27,9 @@ export default function NavMenu() {
         {/* 'group' to ensure hover on this div get inherited to child divs */}
         {/* 'relative' to absolute children are positioned relative to this div */}
         <div className="relative group">
-          <Link
-            href="/todo"
-            className="text-black hover:text-black text-medium font-bold pr-12 py-2"
-          >
-            Trading Signals
-          </Link>
+          <span className="text-black hover:text-black text-medium font-bold pr-12 py-2">
+            Cointegration
+          </span>
           <div
             className={`absolute left-0 top-full mt-1 hidden group-hover:block bg-white border border-gray-200 rounded-md shadow-md ${dropdownWidth}`}
           >
@@ -44,7 +41,7 @@ export default function NavMenu() {
                 <span
                   className={`${dropdownItemHoverColor} ${dropdownItemPadding} ${dropdownItemFontWeight} ${dropdownItemFontSize} rounded`}
                 >
-                  Pairs Cointegration - Stock
+                  Stocks
                 </span>
               </Link>
               <Link
@@ -54,14 +51,14 @@ export default function NavMenu() {
                 <span
                   className={`${dropdownItemHoverColor} ${dropdownItemPadding} ${dropdownItemFontWeight} ${dropdownItemFontSize} rounded`}
                 >
-                  Pairs Cointegration - Crypto
+                  Cryptocurrencies
                 </span>
               </Link>
               <Link href="/todo" className="block px-4 py-2 text-left">
                 <span
                   className={`${dropdownItemHoverColor} ${dropdownItemPadding} ${dropdownItemFontWeight} ${dropdownItemFontSize} rounded`}
                 >
-                  Coming Soon
+                  more to come
                 </span>
               </Link>
             </div>

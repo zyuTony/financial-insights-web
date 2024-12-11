@@ -77,7 +77,7 @@ const columnDefs = [
       fontWeight: columnsConfig.fontWeightNormal,
     },
     headerClass: "ag-right-aligned-header",
-    maxWidth: 120,
+    maxWidth: 140,
     flex: 1,
   },
   {
@@ -111,7 +111,7 @@ const columnDefs = [
       fontWeight: columnsConfig.fontWeightNormal,
     },
     headerClass: "ag-right-aligned-header",
-    maxWidth: 120,
+    maxWidth: 140,
     flex: 1,
   },
   {
