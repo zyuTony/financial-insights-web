@@ -23,3 +23,13 @@ model binance_market_data {
 
   @@id([symbol, date])
 }
+
+model binance_analyzer_cointegration {
+  symbol_one    String   @db.VarChar(20)
+  symbol_two    String   @db.VarChar(20)
+  date          DateTime @db.Date
+  window_size   Int
+  coint_p_value Float
+
+  @@id([symbol_one, symbol_two, date])
+}

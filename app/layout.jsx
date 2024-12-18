@@ -16,7 +16,7 @@ export default function RootLayout({ children }) {
       <body className="flex flex-col w-full h-full">
         <NavMenu />
         <main className="flex-grow">{children}</main>
-        <Footer />
+        {/* <Footer /> */}
       </body>
     </html>
   );
