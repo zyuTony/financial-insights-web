@@ -13,6 +13,7 @@ export async function GET(request) {
         symbol: true,
         close: true,
         date: true,
+        quote_volume: true,
       },
       where: {
         date: {
@@ -40,6 +41,7 @@ export async function GET(request) {
         _max: {
           close: price.close,
           date: price.date,
+          quote_volume: price.quote_volume,
         },
       }));
 
@@ -47,6 +49,12 @@ export async function GET(request) {
     const formattedPerformance = performance.map((symbol) => {
       const currentPrice = symbol._max.close;
       const prices = historicalPrices.filter((p) => p.symbol === symbol.symbol);
+
+      // Calculate 14-day average volume
+      const last14Days = prices.slice(0, 14);
+      const avgQuoteVolume =
+        last14Days.reduce((sum, p) => sum + p.quote_volume, 0) /
+        last14Days.length;
 
       // Find prices at different periods
       const price7d = prices.find(
@@ -78,6 +86,7 @@ export async function GET(request) {
       return {
         symbol: symbol.symbol,
         currentPrice: parseFloat(currentPrice),
+        usdVolume14d: parseFloat(avgQuoteVolume),
         gain7d: price7d ? ((currentPrice - price7d) / price7d) * 100 : null,
         gain30d: price30d ? ((currentPrice - price30d) / price30d) * 100 : null,
         gain90d: price90d ? ((currentPrice - price90d) / price90d) * 100 : null,

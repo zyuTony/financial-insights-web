@@ -43,19 +43,19 @@ export default function CryptoPerformance() {
               onClick={() => handlePresetRange("2019-12-23", "2020-08-17")}
               className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded"
             >
-              2020 AltSeason
+              2020 Altseason
             </button>
             <button
               onClick={() => handlePresetRange("2021-01-04", "2022-01-10")}
               className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded"
             >
-              2021 AltSeason
+              2021 Altseason
             </button>
             <button
               onClick={() => handlePresetRange("2023-10-30", "2024-03-25")}
               className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded"
             >
-              2023 AltSeason
+              2023 Altseason
             </button>
             <button
               onClick={() =>
@@ -66,7 +66,7 @@ export default function CryptoPerformance() {
               }
               className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded"
             >
-              2024 AltSeason
+              2024 Altseason
             </button>
           </div>
 

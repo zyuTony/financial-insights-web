@@ -77,6 +77,21 @@ const columnDefs = [
     flex: 1,
   },
   {
+    headerName: "Volume (M)",
+    field: "usdVolume14d",
+    valueFormatter: (params) =>
+      params.value ? `$${Math.round(params.value / 1000000)}M` : "N/A",
+    cellStyle: {
+      textAlign: "right",
+      color: columnsConfig.colorNormal,
+      fontWeight: columnsConfig.fontWeightNormal,
+    },
+    headerClass: "ag-right-aligned-header",
+    minWidth: 120,
+    maxWidth: 200,
+    flex: 1,
+  },
+  {
     headerName: "7d Gain",
     field: "gain7d",
     valueFormatter: (params) =>
