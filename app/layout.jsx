@@ -13,6 +13,22 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="h-full">
+      <head>
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-37E9HK965N"
+        ></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-37E9HK965N');
+            `,
+          }}
+        />
+      </head>
       <body className="flex flex-col w-full h-full">
         <NavMenu />
         <main className="flex-grow">{children}</main>

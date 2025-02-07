@@ -16,9 +16,9 @@ export default function NavMenu() {
       <div className="px-10 py-6">
         <Link
           href="/"
-          className="text-green-800 hover:text-green-600 text-2xl font-semibold"
+          className="text-grey-800 hover:text-green-600 text-2xl font-normal tracking-widest uppercase"
         >
-          <span>crypto insights</span>
+          <span>Trader Insights</span>
         </Link>
       </div>
 
@@ -28,7 +28,7 @@ export default function NavMenu() {
         {/* 'relative' to absolute children are positioned relative to this div */}
         <div className="relative group">
           <span className="text-black hover:text-black text-medium font-bold pr-12 py-2">
-            Cointegration
+            Pair Trading
           </span>
           <div
             className={`absolute left-0 top-full mt-1 hidden group-hover:block bg-white border border-gray-200 rounded-md shadow-md ${dropdownWidth}`}
