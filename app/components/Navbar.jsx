@@ -26,7 +26,7 @@ export default function NavMenu() {
       <div className="px-10 py-6 flex">
         {/* 'group' to ensure hover on this div get inherited to child divs */}
         {/* 'relative' to absolute children are positioned relative to this div */}
-        {/* <div className="relative group">
+        <div className="relative group">
           <span className="text-black hover:text-black text-medium font-bold pr-12 py-2">
             Cointegration
           </span>
@@ -34,7 +34,7 @@ export default function NavMenu() {
             className={`absolute left-0 top-full mt-1 hidden group-hover:block bg-white border border-gray-200 rounded-md shadow-md ${dropdownWidth}`}
           >
             <div className="py-2">
-              <Link
+              {/* <Link
                 href="/trading_signals/stock_pair_cointegration"
                 className="block px-4 py-2 text-left"
               >
@@ -43,7 +43,7 @@ export default function NavMenu() {
                 >
                   Stocks
                 </span>
-              </Link>
+              </Link> */}
               <Link
                 href="/trading_signals/crypto_pair_cointegration"
                 className="block px-4 py-2 text-left"
@@ -54,16 +54,16 @@ export default function NavMenu() {
                   Cryptocurrencies
                 </span>
               </Link>
-              <Link href="/todo" className="block px-4 py-2 text-left">
+              {/* <Link href="/todo" className="block px-4 py-2 text-left">
                 <span
                   className={`${dropdownItemHoverColor} ${dropdownItemPadding} ${dropdownItemFontWeight} ${dropdownItemFontSize} rounded`}
                 >
                   more to come
                 </span>
-              </Link>
+              </Link> */}
             </div>
           </div>
-        </div> */}
+        </div>
         <div className="relative group">
           <span className="text-black hover:text-black text-medium font-bold pr-12 py-2">
             Performance
