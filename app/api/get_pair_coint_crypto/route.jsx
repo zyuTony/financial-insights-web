@@ -2,26 +2,32 @@ import { prisma } from "../../lib/prisma";
 
 export async function GET() {
   try {
-    const maxDate = await prisma.coin_signal_api_output.aggregate({
+    const maxDate = await prisma.binance_analyzer_cointegration.aggregate({
       _max: {
         date: true,
       },
     });
 
-    const signals = await prisma.coin_signal_api_output.findMany({
+    const signals = await prisma.binance_analyzer_cointegration.findMany({
       where: {
         date: maxDate._max.date,
+        coint_p_value: {
+          gt: 0,
+          lt: 0.3,
+        },
       },
       select: {
         symbol_one: true,
         symbol_two: true,
         coint_p_value: true,
+        date: true,
       },
     });
 
     const formattedSignals = signals.map((signal) => ({
       ...signal,
       coint_p_value: parseFloat(signal.coint_p_value),
+      significant: parseFloat(signal.coint_p_value) < 0.05 ? "Flashed" : "-",
       // most_recent_coint_pct: parseFloat(signal.most_recent_coint_pct),
       // recent_coint_pct: parseFloat(signal.recent_coint_pct),
       // hist_coint_pct: parseFloat(signal.hist_coint_pct),

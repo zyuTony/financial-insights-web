@@ -22,8 +22,8 @@ const mcFormater = (number) => {
 };
 
 const gridConfig = {
-  minWidth: "800px",
-  maxWidth: "1450px",
+  minWidth: "100px",
+  maxWidth: "1000px",
   paginationSize: 25,
   pagination: true,
   paginationPageSizeSelector: [10, 25, 50],
@@ -48,7 +48,7 @@ const columnsConfig = {
 const columnDefs = [
   {
     headerName: "Symbol 1",
-    field: "symbol1",
+    field: "symbol_one",
     cellStyle: {
       color: columnsConfig.colorSymbol,
       fontWeight: columnsConfig.fontWeightBold,
@@ -64,25 +64,12 @@ const columnDefs = [
       );
     },
     minWidth: 100,
-    maxWidth: 100,
-    flex: 1,
-  },
-  {
-    headerName: "Market Cap 1",
-    field: "market_cap_1",
-    valueFormatter: (params) => mcFormater(params.value),
-    cellStyle: {
-      textAlign: "right",
-      color: columnsConfig.colorNormal,
-      fontWeight: columnsConfig.fontWeightNormal,
-    },
-    headerClass: "ag-right-aligned-header",
-    maxWidth: 140,
+    maxWidth: 200,
     flex: 1,
   },
   {
     headerName: "Symbol 2",
-    field: "symbol2",
+    field: "symbol_two",
     cellStyle: {
       color: columnsConfig.colorSymbol,
       fontWeight: columnsConfig.fontWeightBold,
@@ -98,89 +85,13 @@ const columnDefs = [
       );
     },
     minWidth: 100,
-    maxWidth: 100,
+    maxWidth: 200,
     flex: 1,
   },
   {
-    headerName: "Market Cap 2",
-    field: "market_cap_2",
-    valueFormatter: (params) => mcFormater(params.value),
-    cellStyle: {
-      textAlign: "right",
-      color: columnsConfig.colorNormal,
-      fontWeight: columnsConfig.fontWeightNormal,
-    },
-    headerClass: "ag-right-aligned-header",
-    maxWidth: 140,
-    flex: 1,
-  },
-  {
-    headerName: "% Coint (Past 14 Days)",
-    field: "most_recent_coint_pct",
-    valueFormatter: (params) => `${Math.round(params.value * 100)}%`,
-    cellStyle: (params) => {
-      const allValues = params.api
-        .getModel()
-        .rowsToDisplay.map((row) => row.data.most_recent_coint_pct);
-      const min = Math.min(...allValues);
-      const max = Math.max(...allValues);
-      return {
-        textAlign: "right",
-        color: columnsConfig.getRankingColor(params.value, min, max),
-        fontWeight: columnsConfig.fontWeightBold,
-      };
-    },
-    headerClass: "ag-right-aligned-header",
-    minWidth: 100,
-    maxWidth: 180,
-    flex: 1.3,
-  },
-  {
-    headerName: "% Coint (Past 60 Days)",
-    field: "recent_coint_pct",
-    valueFormatter: (params) => `${Math.round(params.value * 100)}%`,
-    cellStyle: (params) => {
-      const allValues = params.api
-        .getModel()
-        .rowsToDisplay.map((row) => row.data.recent_coint_pct);
-      const min = Math.min(...allValues);
-      const max = Math.max(...allValues);
-      return {
-        textAlign: "right",
-        color: columnsConfig.getRankingColor(params.value, min, max),
-        fontWeight: columnsConfig.fontWeightBold,
-      };
-    },
-    headerClass: "ag-right-aligned-header",
-    minWidth: 100,
-    maxWidth: 180,
-    flex: 1.3,
-  },
-  {
-    headerName: "% Coint (Past 1 Year)",
-    field: "hist_coint_pct",
-    valueFormatter: (params) => `${Math.round(params.value * 100)}%`,
-    cellStyle: (params) => {
-      const allValues = params.api
-        .getModel()
-        .rowsToDisplay.map((row) => row.data.hist_coint_pct);
-      const min = Math.min(...allValues);
-      const max = Math.max(...allValues);
-      return {
-        textAlign: "right",
-        color: columnsConfig.getRankingColor(params.value, min, max),
-        fontWeight: columnsConfig.fontWeightBold,
-      };
-    },
-    headerClass: "ag-right-aligned-header",
-    minWidth: 100,
-    maxWidth: 180,
-    flex: 1.3,
-  },
-  {
-    headerName: "OLS Coefficient",
-    field: "ols_coeff",
-    valueFormatter: (params) => params.value.toFixed(2),
+    headerName: "Coint P-Value",
+    field: "coint_p_value",
+    valueFormatter: (params) => params.value.toFixed(4),
     cellStyle: {
       textAlign: "right",
       color: columnsConfig.colorNormal,
@@ -188,42 +99,12 @@ const columnDefs = [
     },
     headerClass: "ag-right-aligned-header",
     minWidth: 100,
-    maxWidth: 140,
+    maxWidth: 200,
     flex: 1,
   },
   {
-    headerName: "OLS Constant",
-    field: "ols_constant",
-    valueFormatter: (params) => params.value.toFixed(2),
-    cellStyle: {
-      textAlign: "right",
-      color: columnsConfig.colorNormal,
-      fontWeight: columnsConfig.fontWeightNormal,
-    },
-    headerClass: "ag-right-aligned-header",
-    minWidth: 100,
-    maxWidth: 120,
-    flex: 1,
-  },
-  {
-    headerName: "R-Squared",
-    field: "r_squared",
-    valueFormatter: (params) => {
-      return params.value != null ? (params.value * 100).toFixed(0) + "%" : "";
-    },
-    cellStyle: {
-      textAlign: "right",
-      color: columnsConfig.colorNormal,
-      fontWeight: columnsConfig.fontWeightNormal,
-    },
-    headerClass: "ag-right-aligned-header",
-    minWidth: 100,
-    maxWidth: 110,
-    flex: 1,
-  },
-  {
-    headerName: "Last Updated",
-    field: "last_updated",
+    headerName: "Date",
+    field: "date",
     valueFormatter: (params) => new Date(params.value).toLocaleDateString(),
     cellStyle: {
       textAlign: "right",
@@ -232,7 +113,29 @@ const columnDefs = [
     },
     headerClass: "ag-right-aligned-header",
     minWidth: 100,
-    maxWidth: 120,
+    maxWidth: 200,
+    flex: 1,
+  },
+  {
+    headerName: "Signal",
+    field: "significant",
+    cellStyle: (params) => {
+      if (params.value === "Flashed") {
+        return {
+          textAlign: "right",
+          color: "green",
+          fontWeight: "bold",
+        };
+      }
+      return {
+        textAlign: "right",
+        color: columnsConfig.colorNormal,
+        fontWeight: columnsConfig.fontWeightNormal,
+      };
+    },
+    headerClass: "ag-right-aligned-header",
+    minWidth: 120,
+    maxWidth: 200,
     flex: 1,
   },
 ];
