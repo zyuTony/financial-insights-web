@@ -28,7 +28,6 @@ export async function GET(request) {
         avg_volume_14d: "desc",
       },
     });
-
     // Format the performance data
     const formattedPerformance = performance.map((p) => {
       return {
@@ -50,6 +49,7 @@ export async function GET(request) {
         gainAltseason3: p.pct_change_altseason_3
           ? parseFloat(p.pct_change_altseason_3) * 100
           : null,
+        last_updated: p.latest_date,
       };
     });
 

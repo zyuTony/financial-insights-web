@@ -61,6 +61,7 @@ const columnDefs = [
     maxWidth: 200,
     flex: 0.7,
   },
+
   {
     headerName: "Current Price",
     field: "currentPrice",
@@ -227,6 +228,20 @@ const columnDefs = [
     }),
     headerClass: "ag-right-aligned-header",
     minWidth: 140,
+    maxWidth: 200,
+    flex: 1,
+  },
+  {
+    headerName: "Last Updated",
+    field: "last_updated",
+    valueFormatter: (params) => new Date(params.value).toLocaleDateString(),
+    cellStyle: {
+      textAlign: "right",
+      color: columnsConfig.colorNormal,
+      fontWeight: columnsConfig.fontWeightNormal,
+    },
+    headerClass: "ag-right-aligned-header",
+    minWidth: 180,
     maxWidth: 200,
     flex: 1,
   },
