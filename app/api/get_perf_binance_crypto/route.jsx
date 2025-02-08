@@ -13,70 +13,45 @@ export async function GET(request) {
         symbol: true,
         close: true,
         date: true,
-        quote_volume: true,
       },
       where: {
         date: {
           gte: startDate
-            ? new Date(
-                Math.min(
-                  new Date(startDate).getTime(),
-                  Date.now() - 180 * 24 * 60 * 60 * 1000
-                )
-              )
+            ? new Date(startDate)
             : new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
+          lte: endDate ? new Date(endDate) : new Date(),
         },
       },
       orderBy: {
-        date: "desc",
+        date: "asc",
       },
     });
 
-    // Get latest date and prices from historical data
-    const latestDate = historicalPrices[0].date;
-    const performance = historicalPrices
-      .filter((price) => price.date.getTime() === latestDate.getTime())
-      .map((price) => ({
-        symbol: price.symbol,
-        _max: {
-          close: price.close,
-          date: price.date,
-          quote_volume: price.quote_volume,
-        },
-      }));
+    // Get performance data from binance_periods_performance table
+    const performance = await prisma.binance_periods_performance.findMany({
+      select: {
+        symbol: true,
+        latest_close: true,
+        avg_volume_14d: true,
+        pct_change_7d: true,
+        pct_change_30d: true,
+        pct_change_90d: true,
+        pct_change_180d: true,
+        latest_date: true,
+      },
+    });
 
-    // Calculate gains for each period
-    const formattedPerformance = performance.map((symbol) => {
-      const currentPrice = symbol._max.close;
-      const prices = historicalPrices.filter((p) => p.symbol === symbol.symbol);
-
-      // Calculate 14-day average volume
-      const last14Days = prices.slice(0, 14);
-      const avgQuoteVolume =
-        last14Days.reduce((sum, p) => sum + p.quote_volume, 0) /
-        last14Days.length;
-
-      // Find prices at different periods
-      const price7d = prices.find(
-        (p) => p.date <= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-      )?.close;
-      const price30d = prices.find(
-        (p) => p.date <= new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-      )?.close;
-      const price90d = prices.find(
-        (p) => p.date <= new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
-      )?.close;
-      const price180d = prices.find(
-        (p) => p.date <= new Date(Date.now() - 180 * 24 * 60 * 60 * 1000)
-      )?.close;
-
+    // Format the performance data
+    const formattedPerformance = performance.map((p) => {
       // Find custom period price if dates provided
       let customPeriodGain = null;
       if (startDate && endDate) {
-        const startPrice = prices.findLast(
-          (p) => p.date >= new Date(startDate)
+        const startPrice = historicalPrices.find(
+          (h) => h.symbol === p.symbol && h.date >= new Date(startDate)
         )?.close;
-        const endPrice = prices.find((p) => p.date <= new Date(endDate))?.close;
+        const endPrice = historicalPrices.find(
+          (h) => h.symbol === p.symbol && h.date <= new Date(endDate)
+        )?.close;
 
         if (startPrice && endPrice) {
           customPeriodGain = ((endPrice - startPrice) / startPrice) * 100;
@@ -84,15 +59,13 @@ export async function GET(request) {
       }
 
       return {
-        symbol: symbol.symbol,
-        currentPrice: parseFloat(currentPrice),
-        usdVolume14d: parseFloat(avgQuoteVolume),
-        gain7d: price7d ? ((currentPrice - price7d) / price7d) * 100 : null,
-        gain30d: price30d ? ((currentPrice - price30d) / price30d) * 100 : null,
-        gain90d: price90d ? ((currentPrice - price90d) / price90d) * 100 : null,
-        gain180d: price180d
-          ? ((currentPrice - price180d) / price180d) * 100
-          : null,
+        symbol: p.symbol,
+        currentPrice: parseFloat(p.latest_close),
+        usdVolume14d: parseFloat(p.avg_volume_14d),
+        gain7d: p.pct_change_7d ? parseFloat(p.pct_change_7d) : null,
+        gain30d: p.pct_change_30d ? parseFloat(p.pct_change_30d) : null,
+        gain90d: p.pct_change_90d ? parseFloat(p.pct_change_90d) : null,
+        gain180d: p.pct_change_180d ? parseFloat(p.pct_change_180d) : null,
         customPeriodGain: customPeriodGain,
       };
     });
