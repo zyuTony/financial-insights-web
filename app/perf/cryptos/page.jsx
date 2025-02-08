@@ -13,10 +13,10 @@ export default function CryptoPerformance() {
 
   return (
     <div className="flex flex-col px-24 py-12 h-full w-full">
-      <h1 className="text-center text-3xl px-24 pb-6">
+      <h1 className="text-center text-3xl px-24 pb-6 font-normal tracking-widest uppercase">
         Binance Listed Coins Performance
       </h1>
-      <div className="text-center px-24 pb-8 text-gray-700">
+      <div className="text-center px-24 pb-8 text-gray-700 font-normal tracking-widest">
         This table displays performance metrics of cryptocurrencies listed on
         Binance across different time periods. The table includes three notable
         altcoin seasons: Dec 2019 - Aug 2020 (Altseason 1), Jan 2021 - Jan 2022

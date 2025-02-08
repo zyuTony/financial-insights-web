@@ -14,10 +14,10 @@ export default function crypto_pair_cointegration() {
   return (
     <div className="flex flex-col px-24 py-12 h-full w-full">
       {/* explain section */}
-      <h1 className="text-center text-3xl px-24 pb-6">
+      <h1 className="text-center text-3xl px-24 pb-6 font-normal tracking-widest uppercase">
         Crypto Pairs Cointegration
       </h1>
-      <div className="text-center px-24 pb-8 text-gray-700">
+      <div className="text-center px-24 pb-8 text-gray-700 font-normal tracking-widest">
         This table shows cryptocurrency pairs that exhibit cointegration - a
         statistical relationship where two assets maintain a relatively stable
         price difference over time. Using 60 days of historical data, we analyze
