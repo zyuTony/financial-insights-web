@@ -103,7 +103,7 @@ const columnDefs = [
     flex: 1,
   },
   {
-    headerName: "Date",
+    headerName: "Last Updated",
     field: "date",
     valueFormatter: (params) => new Date(params.value).toLocaleDateString(),
     cellStyle: {

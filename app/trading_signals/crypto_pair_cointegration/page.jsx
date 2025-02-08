@@ -2,6 +2,7 @@
 // pages/index.js
 import useSWR from "swr";
 import CryptoPairCointTable from "@/app/components/CryptoPairCointTable";
+import LoadingSpinner from "@/app/components/LoadingSpinner";
 
 const fetcher = (url) => fetch(url).then((res) => res.json());
 
@@ -9,7 +10,7 @@ export default function crypto_pair_cointegration() {
   const { data, error } = useSWR("/api/get_pair_coint_crypto", fetcher);
 
   if (error) return <div>Failed to load data</div>;
-  if (!data) return <div className="px-10">loading...</div>;
+  if (!data) return <LoadingSpinner />;
 
   return (
     <div className="flex flex-col px-24 py-12 h-full w-full">
