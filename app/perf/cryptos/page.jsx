@@ -17,11 +17,12 @@ export default function CryptoPerformance() {
         Binance Listed Coins Performance
       </h1>
       <div className="text-center px-24 pb-8 text-gray-700">
-        This table displays the performance metrics of cryptocurrencies listed
-        on Binance across different time periods. Analyze historical price
-        movements during notable altcoin seasons. The table shows key statistics
-        like price changes, trading volume, and market capitalization to help
-        identify strong movers for you next trade.
+        This table displays performance metrics of cryptocurrencies listed on
+        Binance across different time periods. The table includes three notable
+        altcoin seasons: Dec 2019 - Aug 2020 (Altseason 1), Jan 2021 - Jan 2022
+        (Altseason 2), and Oct 2023 - Mar 2024 (Altseason 3). These periods
+        represent significant market cycles where altcoins showed strong
+        performance.
       </div>
 
       <div className="flex flex-col items-center gap-8">
