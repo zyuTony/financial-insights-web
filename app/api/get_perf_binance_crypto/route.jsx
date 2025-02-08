@@ -2,31 +2,6 @@ import { prisma } from "@/app/lib/prisma";
 
 export async function GET(request) {
   try {
-    // Get query parameters for custom date range
-    const { searchParams } = new URL(request.url);
-    const startDate = searchParams.get("startDate");
-    const endDate = searchParams.get("endDate");
-
-    // Get historical prices for calculating gains
-    const historicalPrices = await prisma.binance_market_data.findMany({
-      select: {
-        symbol: true,
-        close: true,
-        date: true,
-      },
-      where: {
-        date: {
-          gte: startDate
-            ? new Date(startDate)
-            : new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
-          lte: endDate ? new Date(endDate) : new Date(),
-        },
-      },
-      orderBy: {
-        date: "asc",
-      },
-    });
-
     // Get performance data from binance_periods_performance table
     const performance = await prisma.binance_periods_performance.findMany({
       select: {
@@ -37,36 +12,44 @@ export async function GET(request) {
         pct_change_30d: true,
         pct_change_90d: true,
         pct_change_180d: true,
+        pct_change_altseason_1: true,
+        pct_change_altseason_2: true,
+        pct_change_altseason_3: true,
         latest_date: true,
+      },
+      where: {
+        NOT: {
+          symbol: {
+            in: ["EUR", "EURI", "AEUR", "USDC", "FDUSD", "TUSD"],
+          },
+        },
+      },
+      orderBy: {
+        avg_volume_14d: "desc",
       },
     });
 
     // Format the performance data
     const formattedPerformance = performance.map((p) => {
-      // Find custom period price if dates provided
-      let customPeriodGain = null;
-      if (startDate && endDate) {
-        const startPrice = historicalPrices.find(
-          (h) => h.symbol === p.symbol && h.date >= new Date(startDate)
-        )?.close;
-        const endPrice = historicalPrices.find(
-          (h) => h.symbol === p.symbol && h.date <= new Date(endDate)
-        )?.close;
-
-        if (startPrice && endPrice) {
-          customPeriodGain = ((endPrice - startPrice) / startPrice) * 100;
-        }
-      }
-
       return {
         symbol: p.symbol,
         currentPrice: parseFloat(p.latest_close),
         usdVolume14d: parseFloat(p.avg_volume_14d),
-        gain7d: p.pct_change_7d ? parseFloat(p.pct_change_7d) : null,
-        gain30d: p.pct_change_30d ? parseFloat(p.pct_change_30d) : null,
-        gain90d: p.pct_change_90d ? parseFloat(p.pct_change_90d) : null,
-        gain180d: p.pct_change_180d ? parseFloat(p.pct_change_180d) : null,
-        customPeriodGain: customPeriodGain,
+        gain7d: p.pct_change_7d ? parseFloat(p.pct_change_7d) * 100 : null,
+        gain30d: p.pct_change_30d ? parseFloat(p.pct_change_30d) * 100 : null,
+        gain90d: p.pct_change_90d ? parseFloat(p.pct_change_90d) * 100 : null,
+        gain180d: p.pct_change_180d
+          ? parseFloat(p.pct_change_180d) * 100
+          : null,
+        gainAltseason1: p.pct_change_altseason_1
+          ? parseFloat(p.pct_change_altseason_1) * 100
+          : null,
+        gainAltseason2: p.pct_change_altseason_2
+          ? parseFloat(p.pct_change_altseason_2) * 100
+          : null,
+        gainAltseason3: p.pct_change_altseason_3
+          ? parseFloat(p.pct_change_altseason_3) * 100
+          : null,
       };
     });
 

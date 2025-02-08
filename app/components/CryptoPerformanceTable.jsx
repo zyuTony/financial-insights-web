@@ -26,7 +26,7 @@ const priceFormatter = (number) => {
 
 const gridConfig = {
   minWidth: "800px",
-  maxWidth: "1300px",
+  maxWidth: "2000px",
   paginationSize: 25,
   pagination: true,
   paginationPageSizeSelector: [10, 25, 50],
@@ -52,15 +52,14 @@ const columnDefs = [
   {
     headerName: "Symbol",
     field: "symbol",
-    cellStyle: {
-      color: columnsConfig.colorSymbol,
-      fontWeight: columnsConfig.fontWeightBold,
-    },
+    cellStyle: (params) => ({
+      color: params.value === "BTC" ? "#f7931a" : columnsConfig.colorSymbol,
+      fontWeight: params.value === "BTC" ? 700 : columnsConfig.fontWeightBold,
+    }),
     cellClass: "hover-underline",
-
-    minWidth: 200,
+    minWidth: 50,
     maxWidth: 200,
-    flex: 1,
+    flex: 0.7,
   },
   {
     headerName: "Current Price",
@@ -109,7 +108,7 @@ const columnDefs = [
     headerClass: "ag-right-aligned-header",
     minWidth: 100,
     maxWidth: 200,
-    flex: 1,
+    flex: 0.8,
   },
   {
     headerName: "30d Gain",
@@ -129,7 +128,7 @@ const columnDefs = [
     headerClass: "ag-right-aligned-header",
     minWidth: 100,
     maxWidth: 200,
-    flex: 1,
+    flex: 0.8,
   },
   {
     headerName: "90d Gain",
@@ -149,7 +148,7 @@ const columnDefs = [
     headerClass: "ag-right-aligned-header",
     minWidth: 100,
     maxWidth: 200,
-    flex: 1,
+    flex: 0.8,
   },
   {
     headerName: "180d Gain",
@@ -169,11 +168,11 @@ const columnDefs = [
     headerClass: "ag-right-aligned-header",
     minWidth: 100,
     maxWidth: 200,
-    flex: 1.1,
+    flex: 0.8,
   },
   {
-    headerName: "Custom Period Gain",
-    field: "customPeriodGain",
+    headerName: "Altseason 1 Gain",
+    field: "gainAltseason1",
     valueFormatter: (params) =>
       params.value ? `${Math.round(params.value)}%` : "N/A",
     cellStyle: (params) => ({
@@ -189,7 +188,47 @@ const columnDefs = [
     headerClass: "ag-right-aligned-header",
     minWidth: 140,
     maxWidth: 200,
-    flex: 1.1,
+    flex: 1,
+  },
+  {
+    headerName: "Altseason 2 Gain",
+    field: "gainAltseason2",
+    valueFormatter: (params) =>
+      params.value ? `${Math.round(params.value)}%` : "N/A",
+    cellStyle: (params) => ({
+      textAlign: "right",
+      color:
+        params.value > 0
+          ? "green"
+          : params.value < 0
+          ? "red"
+          : columnsConfig.colorNormal,
+      fontWeight: columnsConfig.fontWeightBold,
+    }),
+    headerClass: "ag-right-aligned-header",
+    minWidth: 140,
+    maxWidth: 200,
+    flex: 1,
+  },
+  {
+    headerName: "Altseason 3 Gain",
+    field: "gainAltseason3",
+    valueFormatter: (params) =>
+      params.value ? `${Math.round(params.value)}%` : "N/A",
+    cellStyle: (params) => ({
+      textAlign: "right",
+      color:
+        params.value > 0
+          ? "green"
+          : params.value < 0
+          ? "red"
+          : columnsConfig.colorNormal,
+      fontWeight: columnsConfig.fontWeightBold,
+    }),
+    headerClass: "ag-right-aligned-header",
+    minWidth: 140,
+    maxWidth: 200,
+    flex: 1,
   },
 ];
 
