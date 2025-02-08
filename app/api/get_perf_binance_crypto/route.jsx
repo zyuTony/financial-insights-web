@@ -20,7 +20,7 @@ export async function GET(request) {
       where: {
         NOT: {
           symbol: {
-            in: ["EUR", "EURI", "AEUR", "USDC", "FDUSD", "TUSD"],
+            in: ["EUR", "EURI", "AEUR", "USDC", "FDUSD", "TUSD", "USDP"],
           },
         },
       },
