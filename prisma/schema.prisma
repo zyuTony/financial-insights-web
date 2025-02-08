@@ -33,3 +33,27 @@ model binance_analyzer_cointegration {
 
   @@id([symbol_one, symbol_two, date])
 }
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model binance_periods_performance {
+  symbol                 String?   @db.VarChar(20)
+  latest_date            DateTime? @db.Date
+  latest_close           Float?
+  close_7d_ago           Float?
+  close_30d_ago          Float?
+  close_60d_ago          Float?
+  close_90d_ago          Float?
+  close_180d_ago         Float?
+  avg_volume_14d         Float?
+  pct_change_7d          Float?
+  pct_change_30d         Float?
+  pct_change_60d         Float?
+  pct_change_90d         Float?
+  pct_change_180d        Float?
+  pct_change_365d        Float?
+  pct_change_altseason_1 Float?
+  pct_change_altseason_2 Float?
+  pct_change_altseason_3 Float?
+
+  @@ignore
+}
