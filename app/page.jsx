@@ -82,7 +82,7 @@ export default function Home() {
           <h2 className="text-3xl font-normal text-center mb-12 tracking-widest uppercase">
             Connect With Me
           </h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-4 gap-8">
             {[
               { title: "GitHub", link: "https://github.com/zyuTony" },
               {
@@ -92,6 +92,10 @@ export default function Home() {
               {
                 title: "LinkedIn",
                 link: "https://linkedin.com/in/z-yu",
+              },
+              {
+                title: "Medium",
+                link: "https://medium.com/@zongyuan1998",
               },
             ].map((item, i) => (
               <motion.div
