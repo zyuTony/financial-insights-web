@@ -54,3 +54,9 @@ model binance_periods_performance {
   pct_change_altseason_2 Float?
   pct_change_altseason_3 Float?
 }
+
+
+
+
+
+
