@@ -12,4 +12,4 @@
 
 ## Hotfix Branches
 
-- `hotfix/security-patch`: Quick security update for a production issue.
+- `hotfix/security-patch`: Quick security update on production issue.
