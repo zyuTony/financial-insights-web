@@ -1,5 +1,5 @@
 import { prisma } from "@/app/lib/prisma";
-
+export const dynamic = "force-dynamic";
 export async function GET(request) {
   try {
     // Get performance data from binance_periods_performance table

@@ -1,5 +1,5 @@
-import { prisma } from "../../lib/prisma";
-
+import { prisma } from "@/app/lib/prisma";
+export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const maxDate = await prisma.binance_analyzer_cointegration.aggregate({
